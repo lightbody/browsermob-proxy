@@ -36,7 +36,7 @@ or optionally specify your own port:
     [~]$ curl -X POST -d 'port=9099' http://localhost:9090/proxy
     {"port":9099}
 
-Once that is done, a new proxy will be available on the port returned. All you have to do is point a browser to that proxy on that port and you should be able to browser the internet. The following additional APIs will then be available:
+Once that is done, a new proxy will be available on the port returned. All you have to do is point a browser to that proxy on that port and you should be able to browse the internet. The following additional APIs will then be available:
 
  - PUT /proxy/[port]/har - creates a new HAR attached to the proxy and returns the HAR content if there was a previous HAR. Supports the following parameters:
   - initialPageRef - the string name of the first page ref that should be used in the HAR. Defaults to "Page 1".
