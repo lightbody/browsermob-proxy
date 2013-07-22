@@ -7,6 +7,8 @@ public class HarTimings {
     private long send;
     private long wait;
     private long receive;
+    private long ssl;
+    private String comment;
 
     public HarTimings() {
     }
@@ -67,4 +69,21 @@ public class HarTimings {
     public void setReceive(long receive) {
         this.receive = receive;
     }
+
+    public long getSsl() {
+        return ssl;
+    }
+
+    public void setSsl(long ssl) {
+        this.ssl = ssl;
+    }
+
+    public String getComment() {
+        return comment;
+   }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
 }
