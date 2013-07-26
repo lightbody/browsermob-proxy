@@ -8,6 +8,7 @@ public class HarPostDataParam {
     private String value;
     private String fileName;
     private String contentType;
+    private String comment;
 
     public HarPostDataParam() {
     }
@@ -47,5 +48,13 @@ public class HarPostDataParam {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

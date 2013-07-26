@@ -16,6 +16,7 @@ public class HarResponse {
     private String redirectURL = "";
     private long headersSize;
     private long bodySize;
+    private String comment;
 
     public HarResponse() {
     }
@@ -96,5 +97,13 @@ public class HarResponse {
 
     public void setBodySize(long bodySize) {
         this.bodySize = bodySize;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

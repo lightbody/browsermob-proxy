@@ -9,6 +9,7 @@ public class HarPostData {
     private String mimeType;
     private List<HarPostDataParam> params;
     private String text;
+    private String comment;
 
     public String getMimeType() {
         return mimeType;
@@ -32,5 +33,13 @@ public class HarPostData {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

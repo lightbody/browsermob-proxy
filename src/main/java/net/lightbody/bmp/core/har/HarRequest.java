@@ -16,6 +16,7 @@ public class HarRequest {
     private HarPostData postData;
     private long headersSize; // Odd grammar in spec
     private long bodySize;
+    private String comment;
 
     public HarRequest() {
     }
@@ -96,5 +97,13 @@ public class HarRequest {
 
     public void setBodySize(long bodySize) {
         this.bodySize = bodySize;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

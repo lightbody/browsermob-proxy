@@ -15,6 +15,7 @@ public class HarCookie {
     private Date expires;
     private Boolean httpOnly;
     private Boolean secure;
+    private String comment;
 
     public String getName() {
         return name;
@@ -71,5 +72,13 @@ public class HarCookie {
 
     public void setSecure(Boolean secure) {
         this.secure = secure;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

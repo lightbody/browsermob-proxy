@@ -8,6 +8,8 @@ public class HarContent {
     private Long compression;
     private String mimeType = "";
     private String text;
+    private String encoding;
+    private String comment;
 
     public long getSize() {
         return size;
@@ -39,5 +41,21 @@ public class HarContent {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

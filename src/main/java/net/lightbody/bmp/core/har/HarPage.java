@@ -11,6 +11,7 @@ public class HarPage {
     private Date startedDateTime;
     private String title = "";
     private HarPageTimings pageTimings = new HarPageTimings();
+    private String comment;
 
     public HarPage() {
     }
@@ -52,4 +53,13 @@ public class HarPage {
     public void setPageTimings(HarPageTimings pageTimings) {
         this.pageTimings = pageTimings;
     }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
 }

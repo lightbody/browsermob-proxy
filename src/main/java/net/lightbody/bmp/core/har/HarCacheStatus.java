@@ -12,6 +12,7 @@ public class HarCacheStatus {
     private Date lastAccess;
     private String eTag;
     private int hitCount;
+    private String comment;
 
     @JsonSerialize(using = ISO8601DateFormatter.class)
     public Date getExpires() {
@@ -45,5 +46,13 @@ public class HarCacheStatus {
 
     public void setHitCount(int hitCount) {
         this.hitCount = hitCount;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }
