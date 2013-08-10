@@ -28,6 +28,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
+import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
@@ -558,7 +559,7 @@ public class BrowserMobHttpClient {
             // was the request mocked out?
             if (mockResponseCode != -1) {
                 statusCode = mockResponseCode;
-
+                
                 // TODO: HACKY!!
                 callback.handleHeaders(new Header[]{
                         new Header(){
@@ -578,6 +579,22 @@ public class BrowserMobHttpClient {
                             }
                         }
                 });
+                // Make sure we set the status line here too. 
+                // Use the version number from the request
+                ProtocolVersion version = null;
+                int reqDotVersion = req.getProxyRequest().getDotVersion();
+                if (reqDotVersion == -1) {
+                	version = new HttpVersion(0, 9);
+                } else if (reqDotVersion == 0) {
+                	version = new HttpVersion(1, 0);
+                } else if (reqDotVersion == 1) {
+                   	version = new HttpVersion(1, 1);
+                } 
+                // and if not any of these, trust that a Null version will 
+                // cause an appropriate error
+				callback.handleStatusLine(new BasicStatusLine(version, statusCode, "Status set by browsermob-proxy"));
+				// No mechanism to look up the response text by status code, 
+				// so include a notification that this is a synthetic error code.
             } else {
                 response = httpClient.execute(method, ctx);
                 statusLine = response.getStatusLine();
