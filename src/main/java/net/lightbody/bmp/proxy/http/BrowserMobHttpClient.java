@@ -87,7 +87,7 @@ public class BrowserMobHttpClient {
     private TrustingSSLSocketFactory sslSocketFactory;
     private ThreadSafeClientConnManager httpClientConnMgr;
     private DefaultHttpClient httpClient;
-    private List<BlacklistEntry> blacklistEntries = null;
+    private List<BlacklistEntry> blacklistEntries = new CopyOnWriteArrayList<BrowserMobHttpClient.BlacklistEntry>();
     private WhitelistEntry whitelistEntry = null;
     private List<RewriteRule> rewriteRules = new CopyOnWriteArrayList<RewriteRule>();
     private List<RequestInterceptor> requestInterceptors = new CopyOnWriteArrayList<RequestInterceptor>();
@@ -455,17 +455,20 @@ public class BrowserMobHttpClient {
 
         // handle whitelist and blacklist entries
         int mockResponseCode = -1;
-        if (whitelistEntry != null) {
-            boolean found = false;
-            for (Pattern pattern : whitelistEntry.patterns) {
-                if (pattern.matcher(url).matches()) {
-                    found = true;
-                    break;
+        synchronized (this) {
+            // guard against concurrent modification of whitelistEntry
+            if (whitelistEntry != null) {
+                boolean found = false;
+                for (Pattern pattern : whitelistEntry.patterns) {
+                    if (pattern.matcher(url).matches()) {
+                        found = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!found) {
-                mockResponseCode = whitelistEntry.responseCode;
+                if (!found) {
+                    mockResponseCode = whitelistEntry.responseCode;
+                }
             }
         }
 
@@ -848,6 +851,7 @@ public class BrowserMobHttpClient {
         shutdown = true;
         abortActiveRequests();
         rewriteRules.clear();
+        blacklistEntries.clear();
         credsProvider.clear();
         httpClientConnMgr.shutdown();
         HttpClientInterrupter.release(this);
@@ -918,17 +922,23 @@ public class BrowserMobHttpClient {
     }
 
     public void blacklistRequests(String pattern, int responseCode) {
-        if (blacklistEntries == null) {
-            blacklistEntries = new CopyOnWriteArrayList<BlacklistEntry>();
-        }
-
         blacklistEntries.add(new BlacklistEntry(pattern, responseCode));
     }
 
-    public void whitelistRequests(String[] patterns, int responseCode) {
+    public void clearBlacklist() {
+    	blacklistEntries.clear();
+    }
+    
+    public synchronized void whitelistRequests(String[] patterns, int responseCode) {
+    	// synchronized to guard against concurrent modification 
         whitelistEntry = new WhitelistEntry(patterns, responseCode);
     }
 
+    public synchronized void clearWhitelist() {
+    	// synchronized to guard against concurrent modification 
+    	whitelistEntry = null;
+    }
+    
     public void addHeader(String name, String value) {
         additionalHeaders.put(name, value);
     }

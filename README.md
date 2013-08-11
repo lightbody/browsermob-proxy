@@ -50,9 +50,11 @@ Once that is done, a new proxy will be available on the port returned. All you h
  - PUT /proxy/[port]/whitelist - Sets a list of URL patterns to whitelist. Takes the following parameters:
   - regex - a comma separated list of regular expressions
   - status - the HTTP status code to return for URLs that do not match the whitelist
+ - DELETE /proxy/[port]/whitelist - Clears all URL patterns from the whitelist 
  - PUT /proxy/[port]/blacklist - Set a URL to blacklist. Takes the following parameters:
   - regex - the blacklist regular expression
   - status - the HTTP status code to return for URLs that are blacklisted
+ - DELETE /proxy/[port]/blacklist - Clears all URL patterns from the blacklist
  - PUT /proxy/[port]/limit - Limit the bandwidth through the proxy. Takes the following parameters:
   - downstreamKbps - Sets the downstream kbps
   - upstreamKbps - Sets the upstream kbps

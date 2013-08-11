@@ -116,6 +116,14 @@ public class ProxyResource {
 
         return Reply.saying().ok();
     }
+    
+    @Delete
+    @At("/:port/blacklist")
+    public Reply<?> clearBlacklist(@Named("port") int port, Request request) {
+    	ProxyServer proxy = proxyManager.get(port);
+    	proxy.clearBlacklist();
+    	return Reply.saying().ok();
+    }
 
     @Put
     @At("/:port/whitelist")
@@ -126,6 +134,14 @@ public class ProxyResource {
         proxy.whitelistRequests(regex.split(","), responseCode);
 
         return Reply.saying().ok();
+    }
+    
+    @Delete
+    @At("/:port/whitelist")
+    public Reply<?> clearWhitelist(@Named("port") int port, Request request) {
+    	ProxyServer proxy = proxyManager.get(port);
+    	proxy.clearWhitelist();
+    	return Reply.saying().ok();
     }
 
     @Post

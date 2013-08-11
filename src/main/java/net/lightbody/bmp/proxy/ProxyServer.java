@@ -229,9 +229,17 @@ public class ProxyServer {
     public void blacklistRequests(String pattern, int responseCode) {
         client.blacklistRequests(pattern, responseCode);
     }
+    
+    public void clearBlacklist() {
+    	client.clearBlacklist();
+    }
 
     public void whitelistRequests(String[] patterns, int responseCode) {
         client.whitelistRequests(patterns, responseCode);
+    }
+    
+    public void clearWhitelist() {
+    	client.clearWhitelist();
     }
 
     public void addHeader(String name, String value) {
