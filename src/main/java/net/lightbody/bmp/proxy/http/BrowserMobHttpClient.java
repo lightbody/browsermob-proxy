@@ -927,6 +927,10 @@ public class BrowserMobHttpClient {
     public void rewriteUrl(String match, String replace) {
         rewriteRules.add(new RewriteRule(match, replace));
     }
+    
+    public void clearRewriteRules() {
+    	rewriteRules.clear();
+    }
 
     // this method is provided for backwards compatibility before we renamed it to
     // blacklistRequests (note the plural)

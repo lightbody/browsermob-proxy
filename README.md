@@ -77,6 +77,7 @@ Once that is done, a new proxy will be available on the port returned. All you h
  - PUT /proxy/[port]/rewrite - Redirecting URL's
   - matchRegex - a matching URL regular expression
   - replace - replacement URL
+ - DELETE /proxy/[port]/rewrite - Removes all URL redirection rules currently in effect
  - PUT /proxy/[port]/retry - Setting the retry count
   - retrycount - the number of times a method will be retried
  - DELETE /proxy/[port]/dns/cache - Empties the Cache.

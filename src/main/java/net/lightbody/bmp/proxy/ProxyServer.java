@@ -225,6 +225,10 @@ public class ProxyServer {
     public void rewriteUrl(String match, String replace) {
         client.rewriteUrl(match, replace);
     }
+    
+    public void clearRewriteRules() {
+    	client.clearRewriteRules();
+    }
 
     public void blacklistRequests(String pattern, int responseCode) {
         client.blacklistRequests(pattern, responseCode);

@@ -346,6 +346,14 @@ public class ProxyResource {
         return Reply.saying().ok();
     } 
     
+    @Delete
+    @At("/:port/rewrite")
+    public Reply<?> clearRewriteRules(@Named("port") int port, Request request) {
+    	ProxyServer proxy = proxyManager.get(port);
+    	proxy.clearRewriteRules();
+    	return Reply.saying().ok();
+    }
+    
     @Put
     @At("/:port/retry")
     public Reply<?> retryCount(@Named("port") int port, Request request) {
