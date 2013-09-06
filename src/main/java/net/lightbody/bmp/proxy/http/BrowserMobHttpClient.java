@@ -864,19 +864,22 @@ public class BrowserMobHttpClient {
         //TODO - is there a better way of doing this?
         if (os != null && os instanceof ClonedOutputStream && captureContent ) {
             try {
-                if ( !gzipping && (contentType.startsWith("text/")  ||
-                        contentType.startsWith("application/x-javascript")) ||
-                        contentType.startsWith("application/javascript")  ||
-                        contentType.startsWith("application/json")  ||
-                        contentType.startsWith("application/xml")  ||
-                        contentType.startsWith("application/xhtml+xml")) {
+                if ( !gzipping &&
+                        ( contentType != null && (contentType.startsWith("text/")  ||
+                                contentType.startsWith("application/x-javascript") ||
+                                contentType.startsWith("application/javascript")  ||
+                                contentType.startsWith("application/json")  ||
+                                contentType.startsWith("application/xml")  ||
+                                contentType.startsWith("application/xhtml+xml") ) )
+                        )
+                {
                     ((ClonedOutputStream)os).writeAndCloseAll(output.getEntry().getResponse().getContent().getText());
                 }
                 else {
                     ((ClonedOutputStream)os).writeAndCloseAll( ) ;
                 }
             } catch (IOException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                e.printStackTrace();
             }
         }
 
