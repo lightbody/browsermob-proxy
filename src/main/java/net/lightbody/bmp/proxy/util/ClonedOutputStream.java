@@ -1,9 +1,6 @@
 package net.lightbody.bmp.proxy.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 
 public class ClonedOutputStream extends OutputStream {
     private OutputStream os;
@@ -56,8 +53,10 @@ public class ClonedOutputStream extends OutputStream {
                 copy.writeTo(os);
             }
             else {
-                PrintWriter out = new PrintWriter(os) ;
+                OutputStreamWriter out = new OutputStreamWriter(os) ;
                 out.write(in);
+                out.flush();
+                out.close();
             }
         }
         else if (!copy.toString().isEmpty()) {
