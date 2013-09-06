@@ -391,9 +391,6 @@ public class BrowserMobHttpClient {
             }
 
             BrowserMobHttpResponse response = execute(req, 1);
-            for (ResponseInterceptor interceptor : responseInterceptors) {
-                interceptor.process(response);
-            }
 
             return response;
         } finally {
@@ -498,6 +495,7 @@ public class BrowserMobHttpClient {
         long bytes = 0;
         boolean gzipping = false;
         boolean contentMatched = true;
+        // AF - do i want to do this here?
         OutputStream os = req.getOutputStream();
         if (os == null) {
             os = new CappedByteArrayOutputStream(1024 * 1024); // MOB-216 don't buffer more than 1 MB
@@ -505,7 +503,6 @@ public class BrowserMobHttpClient {
         if (verificationText != null) {
             contentMatched = false;
         }
-        Date start = new Date();
 
         // link the object up now, before we make the request, so that if we get cut off (ie: favicon.ico request and browser shuts down)
         // we still have the attempt associated, even if we never got a response
@@ -550,6 +547,7 @@ public class BrowserMobHttpClient {
         }
 
         StatusLine statusLine = null;
+        // where the work starts
         try {
             // set the User-Agent if it's not already set
             if (method.getHeaders("User-Agent").length == 0) {
@@ -596,6 +594,7 @@ public class BrowserMobHttpClient {
 				// No mechanism to look up the response text by status code, 
 				// so include a notification that this is a synthetic error code.
             } else {
+                //Happy path
                 response = httpClient.execute(method, ctx);
                 statusLine = response.getStatusLine();
                 statusCode = statusLine.getStatusCode();
@@ -622,9 +621,8 @@ public class BrowserMobHttpClient {
                     }
 
                     if (captureContent) {
-                        // todo - something here?
+//                        // todo - something here?
                         os = new ClonedOutputStream(os);
-
                     }
 
                     bytes = copyWithStats(is, os);
@@ -857,8 +855,32 @@ public class BrowserMobHttpClient {
             }
         }
 
+        BrowserMobHttpResponse output = new BrowserMobHttpResponse(entry, method, response, contentMatched, verificationText, errorMessage, responseBody, contentType, charSet);
 
-        return new BrowserMobHttpResponse(entry, method, response, contentMatched, verificationText, errorMessage, responseBody, contentType, charSet);
+        for (ResponseInterceptor interceptor : responseInterceptors) {
+            interceptor.process(output);
+        }
+
+        //TODO - is there a better way of doing this?
+        if (os != null && os instanceof ClonedOutputStream && captureContent ) {
+            try {
+                if ( !gzipping && (contentType.startsWith("text/")  ||
+                        contentType.startsWith("application/x-javascript")) ||
+                        contentType.startsWith("application/javascript")  ||
+                        contentType.startsWith("application/json")  ||
+                        contentType.startsWith("application/xml")  ||
+                        contentType.startsWith("application/xhtml+xml")) {
+                    ((ClonedOutputStream)os).writeAndCloseAll(output.getEntry().getResponse().getContent().getText());
+                }
+                else {
+                    ((ClonedOutputStream)os).writeAndCloseAll( ) ;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
+
+        return output ;
     }
 
     public void shutdown() {
