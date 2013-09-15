@@ -1,10 +1,11 @@
 package net.lightbody.bmp.proxy.http;
 
-import cz.mallat.uasparser.CachingOnlineUpdateUASparser;
-import cz.mallat.uasparser.UASparser;
-import cz.mallat.uasparser.UserAgentInfo;
 import net.lightbody.bmp.core.har.*;
 import net.lightbody.bmp.proxy.util.*;
+import net.sf.uadetector.ReadableUserAgent;
+import net.sf.uadetector.UserAgentStringParser;
+import net.sf.uadetector.service.UADetectorServiceFactory;
+
 import org.apache.http.*;
 import org.apache.http.auth.*;
 import org.apache.http.client.CredentialsProvider;
@@ -55,24 +56,7 @@ import java.util.zip.GZIPInputStream;
 
 public class BrowserMobHttpClient {
     private static final Log LOG = new Log();
-    public static UASparser PARSER = null;
-
-    static {
-        try {
-            PARSER = new CachingOnlineUpdateUASparser();
-        } catch (IOException e) {
-            LOG.severe("Unable to create User-Agent parser, falling back but proxy is in damaged state and should be restarted", e);
-            try {
-                PARSER = new UASparser();
-            } catch (Exception e1) {
-                // ignore
-            }
-        }
-    }
-
-    public static void setUserAgentParser(UASparser parser) {
-        PARSER = parser;
-    }
+    public static UserAgentStringParser PARSER = UADetectorServiceFactory.getCachingAndUpdatingParser();
 
     private static final int BUFFER = 4096;
 
@@ -422,14 +406,10 @@ public class BrowserMobHttpClient {
                 String userAgent = uaHeaders[0].getValue();
                 try {
                     // note: this doesn't work for 'Fandango/4.5.1 CFNetwork/548.1.4 Darwin/11.0.0'
-                    UserAgentInfo uai = PARSER.parse(userAgent);
-                    String name = uai.getUaName();
-                    int lastSpace = name.lastIndexOf(' ');
-                    String browser = name.substring(0, lastSpace);
-                    String version = name.substring(lastSpace + 1);
+                    ReadableUserAgent uai = PARSER.parse(userAgent);
+                    String browser = uai.getName();
+                    String version = uai.getVersionNumber().toVersionString();
                     har.getLog().setBrowser(new HarNameVersion(browser, version));
-                } catch (IOException e) {
-                    // ignore it, it's fine
                 } catch (Exception e) {
                 	LOG.warn("Failed to parse user agent string", e);
                 }

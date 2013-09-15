@@ -263,6 +263,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>net.sf.uadetector</groupId>
+            <artifactId>uadetector-resources</artifactId>
+            <version>2013.08</version>
+        </dependency>
+
     </dependencies>
 
     <reporting>

@@ -3,11 +3,10 @@ package net.lightbody.bmp.proxy.guice;
 import com.google.inject.Binder;
 import com.google.inject.Key;
 import com.google.inject.Module;
-import cz.mallat.uasparser.OnlineUpdateUASparser;
 import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import net.lightbody.bmp.proxy.http.BrowserMobHttpClient;
+import net.sf.uadetector.service.UADetectorServiceFactory;
 
 import java.io.IOException;
 
@@ -28,10 +27,6 @@ public class ConfigModule implements Module {
                 parser.accepts("port", "The port to listen on")
                         .withOptionalArg().ofType(Integer.class).defaultsTo(8080);
 
-        ArgumentAcceptingOptionSpec<Integer> userAgentCacheSpec =
-                parser.accepts("uaCache", "The number of days to cache a database of User-Agent records from http://user-agent-string.info")
-                        .withOptionalArg().ofType(Integer.class).defaultsTo(1);
-
         parser.acceptsAll(asList("help", "?"), "This help text");
 
         OptionSet options = parser.parse(args);
@@ -49,9 +44,9 @@ public class ConfigModule implements Module {
 
         binder.bind(Key.get(Integer.class, new NamedImpl("port"))).toInstance(portSpec.value(options));
 
-        Integer userAgentCacheDays = userAgentCacheSpec.value(options);
-        if (BrowserMobHttpClient.PARSER instanceof OnlineUpdateUASparser) {
-            ((OnlineUpdateUASparser) BrowserMobHttpClient.PARSER).setUpdateInterval(1000 * 60 * 60 * 24 * userAgentCacheDays);
-        }
+        /*
+         * Init User Agent String Parser, update of the UAS datastore will run in background.
+         */
+        UADetectorServiceFactory.getCachingAndUpdatingParser();
     }
 }
