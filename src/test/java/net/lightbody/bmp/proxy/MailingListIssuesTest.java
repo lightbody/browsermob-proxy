@@ -274,4 +274,43 @@ public class MailingListIssuesTest extends DummyServerTest {
         Assert.assertEquals("Text not matched", "this is a.txt", text);
     }
 
+    @Test
+    public void testThatInterceptorsCanReadPostParamaters() throws IOException, InterruptedException {
+
+        proxy.setCaptureContent(true);
+        proxy.newHar("test");
+
+        final String[] capturedPostData = new String[2];
+
+        proxy.addRequestInterceptor(new RequestInterceptor() {
+            @Override
+            final public void process(BrowserMobHttpRequest request) {
+                capturedPostData[0] = request.getProxyRequest().getParameter("testParam");
+            }
+        });
+
+        HttpPost post = new HttpPost("http://127.0.0.1:8080/echo/");
+        HttpEntity entity = new StringEntity("testParam=testValue");
+        post.setEntity(entity);
+        post.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        client.execute(post);
+
+        Har har = proxy.getHar();
+        HarLog log = har.getLog();
+        List<HarEntry> entries = log.getEntries();
+        HarEntry entry = entries.get(0);
+        HarRequest request = entry.getRequest();
+        HarPostData postdata = request.getPostData();
+        capturedPostData[1] = postdata.getParams().get(0).getValue();
+
+        System.out.println(capturedPostData[0]);
+        System.out.println(capturedPostData[1]);
+
+        boolean postDataCapturedAndLoggedCorrectly = capturedPostData[0].equals(capturedPostData[1]);
+
+        Assert.assertEquals(true,postDataCapturedAndLoggedCorrectly);
+
+    }
+
 }
