@@ -9,7 +9,6 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -34,7 +33,7 @@ public class BrowserMobHttpRequest {
     private List<NameValuePair> nvps = new ArrayList<NameValuePair>();
     private StringEntity stringEntity;
     private ByteArrayEntity byteArrayEntity;
-    private InputStreamEntity inputStreamEntity;
+    private RepeatableInputStreamRequestEntity inputStreamEntity;
     private MultipartEntity multipartEntity;
     private OutputStream outputStream;
     private RequestCallback requestCallback;
@@ -51,6 +50,10 @@ public class BrowserMobHttpRequest {
         this.expectedStatusCode = expectedStatusCode;
         this.collectAdditionalInfo = collectAdditionalInfo;
         this.proxyRequest = proxyRequest;
+    }
+
+    public RepeatableInputStreamRequestEntity getInputStreamEntity(){
+        return inputStreamEntity;
     }
 
     public String getExpectedLocation() {
@@ -98,7 +101,7 @@ public class BrowserMobHttpRequest {
             copy = cis.getOutput();
         }
 
-        inputStreamEntity = new InputStreamEntity(is, length);
+        inputStreamEntity = new RepeatableInputStreamRequestEntity(is, length);
     }
 
 
