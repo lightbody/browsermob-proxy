@@ -411,7 +411,7 @@ public class BrowserMobHttpClient {
                     String version = uai.getVersionNumber().toVersionString();
                     har.getLog().setBrowser(new HarNameVersion(browser, version));
                 } catch (Exception e) {
-                	LOG.warn("Failed to parse user agent string", e);
+                  LOG.warn("Failed to parse user agent string", e);
                 }
             }
         }
@@ -503,15 +503,15 @@ public class BrowserMobHttpClient {
             har.getLog().addEntry(entry);
         }
 
-    	String query = method.getURI().getRawQuery();
-    	if (query != null) {
-	        MultiMap<String> params = new MultiMap<String>();
-	        UrlEncoded.decodeTo(query, params, "UTF-8");
-	        for (String k : params.keySet()) {
-	        	for (Object v : params.getValues(k)) {
-	        		entry.getRequest().getQueryString().add(new HarNameValuePair(k, (String) v));
-	        	}
-	        }
+      String query = method.getURI().getRawQuery();
+      if (query != null) {
+          MultiMap<String> params = new MultiMap<String>();
+          UrlEncoded.decodeTo(query, params, "UTF-8");
+          for (String k : params.keySet()) {
+            for (Object v : params.getValues(k)) {
+              entry.getRequest().getQueryString().add(new HarNameValuePair(k, (String) v));
+            }
+          }
         }
 
         String errorMessage = null;
@@ -542,7 +542,7 @@ public class BrowserMobHttpClient {
             // was the request mocked out?
             if (mockResponseCode != -1) {
                 statusCode = mockResponseCode;
-                
+
                 // TODO: HACKY!!
                 callback.handleHeaders(new Header[]{
                         new Header(){
@@ -562,22 +562,22 @@ public class BrowserMobHttpClient {
                             }
                         }
                 });
-                // Make sure we set the status line here too. 
+                // Make sure we set the status line here too.
                 // Use the version number from the request
                 ProtocolVersion version = null;
                 int reqDotVersion = req.getProxyRequest().getDotVersion();
                 if (reqDotVersion == -1) {
-                	version = new HttpVersion(0, 9);
+                  version = new HttpVersion(0, 9);
                 } else if (reqDotVersion == 0) {
-                	version = new HttpVersion(1, 0);
+                  version = new HttpVersion(1, 0);
                 } else if (reqDotVersion == 1) {
-                   	version = new HttpVersion(1, 1);
-                } 
-                // and if not any of these, trust that a Null version will 
+                     version = new HttpVersion(1, 1);
+                }
+                // and if not any of these, trust that a Null version will
                 // cause an appropriate error
-				callback.handleStatusLine(new BasicStatusLine(version, statusCode, "Status set by browsermob-proxy"));
-				// No mechanism to look up the response text by status code, 
-				// so include a notification that this is a synthetic error code.
+        callback.handleStatusLine(new BasicStatusLine(version, statusCode, "Status set by browsermob-proxy"));
+        // No mechanism to look up the response text by status code,
+        // so include a notification that this is a synthetic error code.
             } else {
                 response = httpClient.execute(method, ctx);
                 statusLine = response.getStatusLine();
@@ -741,11 +741,11 @@ public class BrowserMobHttpClient {
                         }
 
                         if (contentType != null && (contentType.startsWith("text/")  ||
-                        		contentType.startsWith("application/x-javascript")) ||
-                        		contentType.startsWith("application/javascript")  ||
-                        		contentType.startsWith("application/json")  ||
-                        		contentType.startsWith("application/xml")  ||
-                        		contentType.startsWith("application/xhtml+xml")) {
+                            contentType.startsWith("application/x-javascript")) ||
+                            contentType.startsWith("application/javascript")  ||
+                            contentType.startsWith("application/json")  ||
+                            contentType.startsWith("application/xml")  ||
+                            contentType.startsWith("application/xhtml+xml")) {
                             entry.getResponse().getContent().setText(new String(copy.toByteArray()));
                         } else if(captureBinaryContent){
                             entry.getResponse().getContent().setText(Base64.byteArrayToBase64(copy.toByteArray()));
@@ -911,9 +911,9 @@ public class BrowserMobHttpClient {
     public void rewriteUrl(String match, String replace) {
         rewriteRules.add(new RewriteRule(match, replace));
     }
-    
+
     public void clearRewriteRules() {
-    	rewriteRules.clear();
+      rewriteRules.clear();
     }
 
     // this method is provided for backwards compatibility before we renamed it to
@@ -927,19 +927,19 @@ public class BrowserMobHttpClient {
     }
 
     public void clearBlacklist() {
-    	blacklistEntries.clear();
+      blacklistEntries.clear();
     }
-    
+
     public synchronized void whitelistRequests(String[] patterns, int responseCode) {
-    	// synchronized to guard against concurrent modification 
+      // synchronized to guard against concurrent modification
         whitelistEntry = new WhitelistEntry(patterns, responseCode);
     }
 
     public synchronized void clearWhitelist() {
-    	// synchronized to guard against concurrent modification 
-    	whitelistEntry = null;
+      // synchronized to guard against concurrent modification
+      whitelistEntry = null;
     }
-    
+
     public void addHeader(String name, String value) {
         additionalHeaders.put(name, value);
     }
@@ -1067,6 +1067,7 @@ public class BrowserMobHttpClient {
 
         private WhitelistEntry(String[] patterns, int responseCode) {
             for (String pattern : patterns) {
+                LOG.severe("Pattern is: ", pattern);
                 this.patterns.add(Pattern.compile(pattern));
             }
             this.responseCode = responseCode;

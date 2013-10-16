@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class ProxyServer {
+public class ProxyServer implements IProxyServer {
     private static final HarNameVersion CREATOR = new HarNameVersion("BrowserMob Proxy", "2.0");
     private static final Log LOG = new Log();
 
@@ -272,7 +272,7 @@ public class ProxyServer {
     public void setCaptureContent(boolean captureContent) {
         client.setCaptureContent(captureContent);
     }
-    
+
     public void setCaptureBinaryContent(boolean captureBinaryContent) {
         client.setCaptureBinaryContent(captureBinaryContent);
     }
@@ -309,7 +309,7 @@ public class ProxyServer {
                         lastCompleted = end;
                     }
                 }
-                
+
                 return lastCompleted != null && System.currentTimeMillis() - lastCompleted.getTime() >= quietPeriodInMs;
             }
         }, TimeUnit.MILLISECONDS, timeoutInMs);

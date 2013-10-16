@@ -52,7 +52,7 @@ import java.util.Random;
  * and implement fairness there.
  *
  */
-public class StreamManager implements BandwidthLimiter {
+public class StreamManager implements IStreamManager {
 
     //helper class to parameters for a stream direction (upstream or downstream)
     private class StreamParams {
@@ -67,7 +67,7 @@ public class StreamManager implements BandwidthLimiter {
         }
         private void reset() {
             remainingBps = adjustedMaxBps / nextResetSubIntervals;
-            nextResetTimestamp = System.currentTimeMillis() + (OneSecond /nextResetSubIntervals);
+            nextResetTimestamp = System.currentTimeMillis() + (BandwidthLimiter.OneSecond /nextResetSubIntervals);
         }
         private void adjustBytes(long bytesNumber) {
             //make sure that this adjustment didn't go over the max allowed
@@ -109,60 +109,40 @@ public class StreamManager implements BandwidthLimiter {
     }
 
 
-    /**
-     * Calling this method to start throttling all registered streams.
-     * By default the StreamManager is disabled
-     */
     public void enable() {
         this.enabled = true;
     }
 
-    /**
-     * Calling this method to stop throttling all registered streams.
-     * By default the StreamManager is disabled
-     */
     public void disable() {
         this.enabled = false;
     }
 
-    /**
-     * setting the max kilobits per seconds this StreamManager should apply in downstream,
-     * as aggregate bandwidth of all the InputStream registered.
-     * @param downstreamKbps the desired max kilobits per second downstream rate.
-     */
+
     @Override
     public void setDownstreamKbps(long downstreamKbps) {
         long bytesPerSecond = (downstreamKbps * 1000) / 8;
         setMaxBps(this.downStream, bytesPerSecond);
     }
-    /**
-     * setting the max kilobits per seconds this StreamManager should apply in upstream,
-     * as aggregate bandwidth of all the OutputStream registered.
-     * @param upstreamKbps the desired max kilobits per second upstream rate.
-     */
+
     @Override
     public void setUpstreamKbps(long upstreamKbps) {
         long bytesPerSecond = (upstreamKbps * 1000) / 8;
         setMaxBps(this.upStream, bytesPerSecond);
     }
-    /**
-     * setting the additional (simulated) latency that the streams will suffer.
-     * By default the latency applied is equal to zero.
-     * @param latency the desired additional latency in milliseconds
-     */
+
     @Override
     public void setLatency(long latency) {
         this.latency = latency;
     }
 
     /**
-     * To take into account overhead due to underlying protocols (e.g. TCP/IP)
-     * @param payloadPercentage a  ] 0 , 100] value. where 100 means that the required
-     *                          downstream/upstream bandwidth will be full used for
-     *                          sending payload.
-     *                          Default value is 95%.
-     *                          The default value is applied if an out of boundaries value is passed in.
-     */
+    * To take into account overhead due to underlying protocols (e.g. TCP/IP)
+    * @param payloadPercentage a  ] 0 , 100] value. where 100 means that the required
+    *                          downstream/upstream bandwidth will be full used for
+    *                          sending payload.
+    *                          Default value is 95%.
+    *                          The default value is applied if an out of boundaries value is passed in.
+    */
     public void setPayloadPercentage(int payloadPercentage) {
         if( !(payloadPercentage > 0 && payloadPercentage <= 100) ) {
             //if an invalid percentage is given
@@ -197,11 +177,11 @@ public class StreamManager implements BandwidthLimiter {
     }
 
     /**
-     * This function sets the max bits per second threshold
-     * {@link #setDownstreamKbps} and {@link #setDownstreamKbps(long)} won't be allowed
-     * to set a bandwidth higher than what specified here.
-     * @param maxBitsPerSecond The max bits per seconds you want this instance of StreamManager to respect.
-     */
+    * This function sets the max bits per second threshold
+    * {@link #setDownstreamKbps} and {@link #setDownstreamKbps(long)} won't be allowed
+    * to set a bandwidth higher than what specified here.
+    * @param maxBitsPerSecond The max bits per seconds you want this instance of StreamManager to respect.
+    */
     public void setMaxBitsPerSecondThreshold(long maxBitsPerSecond) {
         //setting the maximimum threshold of bits per second that
         //we can send EVER in upstream/downstream
