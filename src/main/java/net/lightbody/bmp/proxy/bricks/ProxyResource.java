@@ -54,16 +54,13 @@ public class ProxyResource {
             options.put("httpProxy", String.format("%s:%s", systemProxyHost, systemProxyPort));
         }
 
-        String paramPort = request.param("port");
-        int port = 0;
-        if (paramPort != null) {
-            port = Integer.parseInt(paramPort);
-            ProxyServer proxy = proxyManager.create(options, port);
-        } else {
-            ProxyServer proxy = proxyManager.create(options);
-            port = proxy.getPort();
-        }
-        return Reply.with(new ProxyDescriptor(port)).as(Json.class);
+        String paramBindAddr = request.param("bindAddress");
+        Integer paramPort = request.param("port") == null ? null : Integer.parseInt(request.param("port"));
+        LOG.fine("POST proxy instance on bindAddress `{}` & port `{}`", 
+                paramBindAddr, paramPort);
+        ProxyServer proxy = proxyManager.create(options, paramPort, paramBindAddr);
+
+        return Reply.with(new ProxyDescriptor(proxy.getPort())).as(Json.class);
     }
 
     @Get

@@ -11,6 +11,7 @@ import net.lightbody.bmp.proxy.jetty.http.SocketListener;
 import net.lightbody.bmp.proxy.jetty.jetty.Server;
 import net.lightbody.bmp.proxy.jetty.util.InetAddrPort;
 import net.lightbody.bmp.proxy.util.Log;
+
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.java_bandwidthlimiter.BandwidthLimiter;
@@ -18,6 +19,8 @@ import org.java_bandwidthlimiter.StreamManager;
 import org.openqa.selenium.Proxy;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.Map;
@@ -106,16 +109,21 @@ public class ProxyServer {
 
     public InetAddress getLocalHost() throws UnknownHostException {
         if (localHost == null) {
-            localHost = InetAddress.getLocalHost();
+            localHost = InetAddress.getByName("0.0.0.0");
         }
         return localHost;
     }
 
-    public void setLocalHost(InetAddress localHost) {
-        if (!localHost.isAnyLocalAddress()) {
+    public void setLocalHost(InetAddress localHost) throws SocketException {
+        if (localHost.isAnyLocalAddress() ||
+            localHost.isLoopbackAddress() ||
+            NetworkInterface.getByInetAddress(localHost) != null)
+        {
+            this.localHost = localHost;
+        } else
+        {
             throw new IllegalArgumentException("Must be address of a local adapter");
         }
-        this.localHost = localHost;
     }
 
     public Har getHar() {
