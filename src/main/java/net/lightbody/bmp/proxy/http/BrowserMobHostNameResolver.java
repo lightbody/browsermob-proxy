@@ -46,6 +46,12 @@ public class BrowserMobHostNameResolver implements HostNameResolver {
         }
 
         try {
+            return InetAddress.getByName(hostname);
+        } catch (UnknownHostException e) {
+            // that's fine, this just means we gotta look it up
+        }
+
+        try {
             return Address.getByAddress(hostname);
         } catch (UnknownHostException e) {
             // that's fine, this just means it's not an IP address and we gotta look it up, which is common
