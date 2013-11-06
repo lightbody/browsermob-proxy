@@ -46,10 +46,10 @@ public class BrowserMobHostNameResolver implements HostNameResolver {
         }
 
         try {
-			return InetAddress.getByName(hostname);
-		} catch (UnknownHostException e) {
-			// that's fine, this just means we gotta look it up
-		}
+            return InetAddress.getByName(hostname);
+        } catch (UnknownHostException e) {
+            // that's fine, this just means we gotta look it up
+        }
 
         try {
             return Address.getByAddress(hostname);
