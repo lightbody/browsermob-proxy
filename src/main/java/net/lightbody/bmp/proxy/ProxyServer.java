@@ -334,4 +334,8 @@ public class ProxyServer {
             client.setHttpProxy(options.get("httpProxy"));
         }
     }
+    
+    public BrowserMobHttpClient getClient() {
+		return client;
+	}
 }
