@@ -17,7 +17,6 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -133,7 +132,7 @@ public class RequestInterceptorTest {
                 } catch (UnsupportedEncodingException e) {
                     LOG.info("Error occurred setting string entity of apache HttpPost: ", e);
                 }
-                ((HttpPost)requestMethod).setEntity(entity);
+                ((HttpPost) requestMethod).setEntity(entity);
                 break;
             case GET:
                 requestMethod = new HttpGet("/");
