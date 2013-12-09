@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/v-dev/browsermob-proxy.png?branch=request-interceptor-test)](https://travis-ci.org/v-dev/browsermob-proxy)
+
 BrowserMob Proxy
 ================
 
