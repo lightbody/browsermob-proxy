@@ -35,6 +35,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 public class MailingListIssuesTest extends DummyServerTest {
+    private final String DUMMY_SERVER_BASE_URL = "http://127.0.0.1:" + DUMMY_SERVER_PORT;
+    private final String DUMMY_SERVER_A_TXT = DUMMY_SERVER_BASE_URL + "/a.txt";
+
     @Test
     public void testThatInterceptorIsCalled() throws IOException, InterruptedException {
         final boolean[] interceptorHit = {false};
@@ -45,7 +48,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is a.txt"));
         Assert.assertTrue(interceptorHit[0]);
@@ -61,7 +64,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is a.txt"));
         Assert.assertEquals("Remote host incorrect", "127.0.0.1", remoteHost[0]);
@@ -77,7 +80,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is a.txt"));
     }
@@ -88,14 +91,14 @@ public class MailingListIssuesTest extends DummyServerTest {
             @Override
             public void process(BrowserMobHttpRequest request, Har har) {
                 try {
-                    request.getMethod().setURI(new URI("http://127.0.0.1:8080/b.txt"));
+                    request.getMethod().setURI(new URI(DUMMY_SERVER_BASE_URL + "/b.txt"));
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is b.txt"));
     }
@@ -112,7 +115,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         ThreadUtils.waitFor(new ThreadUtils.WaitCondition() {
             @Override
@@ -129,7 +132,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
         System.out.println("Done with request");
 
         Assert.assertTrue(body.contains("this is a.txt"));
@@ -157,7 +160,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        HttpPost post = new HttpPost("http://127.0.0.1:8080/jsonrpc/");
+        HttpPost post = new HttpPost(DUMMY_SERVER_BASE_URL + "/jsonrpc/");
         HttpEntity entity = new StringEntity("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"test\",\"params\":{}}");
         post.setEntity(entity);
     	post.addHeader("Accept", "application/json-rpc");
@@ -189,7 +192,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        HttpPost post = new HttpPost("http://127.0.0.1:8080/jsonrpc/");
+        HttpPost post = new HttpPost(DUMMY_SERVER_BASE_URL + "/jsonrpc/");
         post.setEntity(new UrlEncodedFormEntity(Collections.singletonList(new BasicNameValuePair("foo", "bar"))));
 
         IOUtils.readFully(client.execute(post).getEntity().getContent());
@@ -219,7 +222,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        InputStream is1 = client.execute(new HttpGet("http://127.0.0.1:8080/c.png")).getEntity().getContent();
+        InputStream is1 = client.execute(new HttpGet(DUMMY_SERVER_BASE_URL + "/c.png")).getEntity().getContent();
         ByteArrayOutputStream o1 = new ByteArrayOutputStream();
         IOUtils.copy(is1, o1);
         ByteArrayOutputStream o2 = new ByteArrayOutputStream();
@@ -251,7 +254,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/a.txt?foo=bar&a=1%262");
+        HttpGet get = new HttpGet(DUMMY_SERVER_A_TXT + "?foo=bar&a=1%262");
         client.execute(get);
 
         Har har = proxy.getHar();
@@ -283,7 +286,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         dummy.getHandler().setMinGzipLength(1);
 
 
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/a.txt");
+        HttpGet get = new HttpGet(DUMMY_SERVER_A_TXT);
         get.addHeader("Accept-Encoding", "gzip");
         String body = IOUtils.readFully(new GZIPInputStream(client.execute(get).getEntity().getContent()));
         System.out.println("Done with request");
@@ -324,7 +327,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        HttpPost post = new HttpPost("http://127.0.0.1:8080/echo/");
+        HttpPost post = new HttpPost(DUMMY_SERVER_BASE_URL + "/echo/");
         HttpEntity entity = new StringEntity("testParam=testValue");
         post.setEntity(entity);
         post.addHeader("Content-Type", "application/x-www-form-urlencoded");
