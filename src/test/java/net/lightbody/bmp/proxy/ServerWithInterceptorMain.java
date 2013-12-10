@@ -6,7 +6,8 @@ import net.lightbody.bmp.proxy.http.RequestInterceptor;
 import net.lightbody.bmp.proxy.util.Log;
 
 /**
- * Just a class with a main() method to start the server in embedded mode.  Useful for putting in debug.
+ * Just a class with a main() method to start the server in embedded mode and a request interceptor.
+ * Useful for putting in debug.
  *
  * @author v
  */
