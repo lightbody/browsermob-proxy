@@ -60,6 +60,22 @@ public class BaseBrick {
         }
     }
 
+    public static class BrickNotFoundReply {
+        private boolean error = true;
+        private String  message = "no such proxy";
+
+        public BrickNotFoundReply() {
+        }
+
+        public boolean getError() {
+            return this.error;
+        }
+
+        public String getMessage() {
+            return this.message;
+        }
+    }
+
     protected Reply<?> wrapSuccess(Object data) {
         if (!this.getEnhancedReplies()) {
             return Reply.with(data).as(Json.class);
@@ -71,12 +87,32 @@ public class BaseBrick {
         return Reply.with(restReply).as(Json.class);
     }
 
+    protected Reply<?> wrapNotFound() {
+        if (!this.getEnhancedReplies()) {
+            return Reply.saying().notFound();
+        }
+
+        BrickNotFoundReply restReply = new BrickNotFoundReply();
+
+        return Reply.with(restReply).as(Json.class).status(404);
+    }
+
     protected Reply<?> wrapEmptySuccess() {
         if (!this.getEnhancedReplies()) {
             return Reply.saying().ok();
         }
 
-        return Reply.with(new BrickEmptySuccessReply()).as(Json.class);
+        return Reply.saying().ok()
+                    .with(new BrickEmptySuccessReply()).as(Json.class);
+    }
+
+    protected Reply<?> wrapNoContent() {
+        if (!this.getEnhancedReplies()) {
+            return Reply.saying().noContent();
+        }
+
+        return Reply.saying().noContent()
+                    .with(new BrickEmptySuccessReply()).as(Json.class);
     }
 
     protected Reply<?> wrapError(Object data) {
@@ -91,7 +127,7 @@ public class BaseBrick {
     }
 
     protected boolean getEnhancedReplies() {
-        return false;
+        return featureFlags.getEnhancedReplies();
     }
 
     protected void logRequest(String path) {

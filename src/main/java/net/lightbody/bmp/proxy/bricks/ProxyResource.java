@@ -50,11 +50,11 @@ public class ProxyResource extends BaseBrick {
         for (ProxyServer proxy : proxyManager.get()) {
             proxyList.add(new ProxyDescriptor(proxy.getPort()));
         }
-        return Reply.with(new ProxyListDescriptor(proxyList)).as(Json.class);
+        return this.wrapSuccess(new ProxyListDescriptor(proxyList));
     }
 
     @Post
-    public Reply<ProxyDescriptor> newProxy(Request request) throws Exception {
+    public Reply<?> newProxy(Request request) throws Exception {
         this.logRequest("POST /proxy");
 
         String systemProxyHost = System.getProperty("http.proxyHost");
@@ -80,7 +80,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.create(options, paramPort, paramBindAddr);
 
-        return Reply.with(new ProxyDescriptor(proxy.getPort())).as(Json.class);
+        return this.wrapSuccess(new ProxyDescriptor(proxy.getPort()));
     }
 
     @Get
@@ -90,12 +90,12 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         Har har = proxy.getHar();
 
-        return Reply.with(har).as(Json.class);
+        return this.wrapSuccess(har);
     }
 
     @Put
@@ -105,7 +105,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String initialPageRef = request.param("initialPageRef");
@@ -123,9 +123,9 @@ public class ProxyResource extends BaseBrick {
         proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
 
         if (oldHar != null) {
-            return Reply.with(oldHar).as(Json.class);
+            return this.wrapSuccess(oldHar);
         } else {
-            return Reply.saying().noContent();
+            return this.wrapNoContent();
         }
     }
 
@@ -136,14 +136,14 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String pageRef = request.param("pageRef");
         this.logParam("pageRef", pageRef);
         proxy.newPage(pageRef);
 
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Put
@@ -153,7 +153,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String blacklist = request.param("regex");
@@ -162,7 +162,7 @@ public class ProxyResource extends BaseBrick {
         this.logParam("status", request.param("status"));
         proxy.blacklistRequests(blacklist, responseCode);
 
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Delete
@@ -172,11 +172,11 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
     	proxy.clearBlacklist();
-    	return Reply.saying().ok();
+    	return this.wrapEmptySuccess();
     }
 
     @Put
@@ -186,7 +186,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String regex = request.param("regex");
@@ -195,7 +195,7 @@ public class ProxyResource extends BaseBrick {
         this.logParam("status", request.param("status"));
         proxy.whitelistRequests(regex.split(","), responseCode);
 
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Delete
@@ -205,11 +205,11 @@ public class ProxyResource extends BaseBrick {
 
     	ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
     	proxy.clearWhitelist();
-    	return Reply.saying().ok();
+    	return this.wrapEmptySuccess();
     }
 
     @Post
@@ -219,7 +219,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         Map<String, String> credentials = request.read(HashMap.class).as(Json.class);
@@ -227,7 +227,7 @@ public class ProxyResource extends BaseBrick {
         this.logParam("password", credentials.get("password"));
         proxy.autoBasicAuthorization(domain, credentials.get("username"), credentials.get("password"));
 
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Post
@@ -237,7 +237,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         Map<String, String> headers = request.read(Map.class).as(Json.class);
@@ -247,7 +247,7 @@ public class ProxyResource extends BaseBrick {
             this.logParam(key, value);
             proxy.addHeader(key, value);
         }
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Post
@@ -257,7 +257,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -283,9 +283,7 @@ public class ProxyResource extends BaseBrick {
             }
         });
 
-
-
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Post
@@ -294,6 +292,9 @@ public class ProxyResource extends BaseBrick {
         this.logRequest("POST /proxy/{}/interceptor/request", port);
 
         ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return this.wrapNotFound();
+        }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         request.readTo(baos);
@@ -318,7 +319,7 @@ public class ProxyResource extends BaseBrick {
             }
         });
 
-        return Reply.saying().ok();
+        return wrapEmptySuccess();
     }
 
     @Put
@@ -328,7 +329,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         StreamManager streamManager = proxy.getStreamManager();
@@ -379,7 +380,7 @@ public class ProxyResource extends BaseBrick {
                 streamManager.disable();
             }
         }
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Put
@@ -389,7 +390,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String requestTimeout = request.param("requestTimeout");
@@ -420,7 +421,7 @@ public class ProxyResource extends BaseBrick {
                 proxy.setDNSCacheTimeout(Integer.parseInt(dnsCacheTimeout));
             } catch (NumberFormatException e) { }
         }
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Delete
@@ -430,11 +431,11 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         proxyManager.delete(port);
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Post
@@ -444,7 +445,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         @SuppressWarnings("unchecked") Map<String, String> headers = request.read(Map.class).as(Json.class);
@@ -458,7 +459,7 @@ public class ProxyResource extends BaseBrick {
             proxy.clearDNSCache();
         }
 
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
 
@@ -469,7 +470,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String quietPeriodInMs = request.param("quietPeriodInMs");
@@ -477,7 +478,7 @@ public class ProxyResource extends BaseBrick {
         String timeoutInMs = request.param("timeoutInMs");
         this.logParam("timeoutInMs", timeoutInMs);
         proxy.waitForNetworkTrafficToStop(Integer.parseInt(quietPeriodInMs), Integer.parseInt(timeoutInMs));
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Delete
@@ -487,11 +488,11 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
     	proxy.clearDNSCache();
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Put
@@ -501,7 +502,7 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String match = request.param("matchRegex");
@@ -509,7 +510,7 @@ public class ProxyResource extends BaseBrick {
         String replace = request.param("replace");
         this.logParam("replace", replace);
         proxy.rewriteUrl(match, replace);
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     @Delete
@@ -519,11 +520,11 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
     	proxy.clearRewriteRules();
-    	return Reply.saying().ok();
+    	return this.wrapEmptySuccess();
     }
 
     @Put
@@ -533,13 +534,13 @@ public class ProxyResource extends BaseBrick {
 
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
-            return Reply.saying().notFound();
+            return this.wrapNotFound();
         }
 
         String count = request.param("retrycount");
         this.logParam("retrycount", count);
         proxy.setRetryCount(Integer.parseInt(count));
-        return Reply.saying().ok();
+        return this.wrapEmptySuccess();
     }
 
     private int parseResponseCode(String response) {

@@ -221,3 +221,4 @@ The full list of tweaks is:
 * POM file now builds browsermob-proxy-XXX-standalone.jar, which you can use to run browsermob-proxy from the command-line on any platform.
 * REST API: GET /features - returns a list of implemented extra features, and whether they are currently active or not
 * REST API: POST / DELETE /features/requestLogs - enable / disable logging more info about the requests received by the proxy's REST API (very handy for building REST clients for the proxy)
+* REST API: POST / DELETE /features/enhancedReplies - enable / disable JSON replies containing explicit 'error' or 'success' info

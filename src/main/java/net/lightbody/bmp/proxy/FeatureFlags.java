@@ -4,12 +4,21 @@ public class FeatureFlags {
 
     private boolean featureFlags = true;
     private boolean requestLogs = false;
+    private boolean enhancedReplies = false;
 
     /**
      * private constructor
      */
     private FeatureFlags() {
 
+    }
+
+    public boolean getEnhancedReplies() {
+        return this.enhancedReplies;
+    }
+
+    public void setEnhancedReplies(boolean enhancedReplies) {
+        this.enhancedReplies = enhancedReplies;
     }
 
     public boolean getFeatureFlags() {
