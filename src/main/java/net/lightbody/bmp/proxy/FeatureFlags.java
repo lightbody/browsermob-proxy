@@ -3,6 +3,7 @@ package net.lightbody.bmp.proxy;
 public class FeatureFlags {
 
     private boolean featureFlags = true;
+    private boolean requestLogs = false;
 
     /**
      * private constructor
@@ -13,6 +14,14 @@ public class FeatureFlags {
 
     public boolean getFeatureFlags() {
         return this.featureFlags;
+    }
+
+    public boolean getRequestLogs() {
+        return this.requestLogs;
+    }
+
+    public void setRequestLogs(boolean requestLogs) {
+        this.requestLogs = requestLogs;
     }
 
     public static FeatureFlags getInstance() {

@@ -93,4 +93,28 @@ public class BaseBrick {
     protected boolean getEnhancedReplies() {
         return false;
     }
+
+    protected void logRequest(String path) {
+        if (!featureFlags.getRequestLogs()) {
+            return;
+        }
+
+        LOG.info(path);
+    }
+
+    protected void logRequest(String path, Object... args) {
+        if (!featureFlags.getRequestLogs()) {
+            return;
+        }
+
+        LOG.info(path, args);
+    }
+
+    protected void logParam(String name, Object param) {
+        if (!featureFlags.getRequestLogs()) {
+            return;
+        }
+
+        LOG.info("  PARAM: {} = {}", name, param);
+    }
 }
