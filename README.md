@@ -212,6 +212,11 @@ NodeJS bindings for browswermob-proxy are available [here](https://github.com/zz
 DataSift Tweaks
 ---------------
 
-We use BMP as a standalone proxy alongside our [Storyplayer](http://datasift.github.io/storyplayer/) test automation tool, and we've made a few tweaks to make the proxy easier to work with:
+We use BMP as a standalone proxy alongside our [Storyplayer](http://datasift.github.io/storyplayer/) test automation tool, and we've made a few tweaks to make the proxy easier to work with.
+
+All of our changes are advertised via the new /features API, and anything that affects backwards-compatibility has been switched off by default.  We use the /features API to help us warn users of Storyplayer if they need to upgrade their copy of browsermob-proxy - much more user-friendly than hitting a missing proxy endpoint partway through running a test!
+
+The full list of tweaks is:
 
 * POM file now builds browsermob-proxy-XXX-standalone.jar, which you can use to run browsermob-proxy from the command-line on any platform.
+* REST API: GET /features - returns a list of implemented extra features, and whether they are currently active or not
