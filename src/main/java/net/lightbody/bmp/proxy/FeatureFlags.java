@@ -6,12 +6,17 @@ public class FeatureFlags {
     private boolean requestLogs = false;
     private boolean enhancedReplies = false;
     private boolean headerGetDelete = true;
+    private boolean authBasic = true;
 
     /**
      * private constructor
      */
     private FeatureFlags() {
 
+    }
+
+    public boolean getAuthBasic() {
+        return this.authBasic;
     }
 
     public boolean getEnhancedReplies() {
