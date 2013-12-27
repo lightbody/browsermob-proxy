@@ -226,3 +226,4 @@ The full list of tweaks is:
 * REST API: PUT /proxy/:port/headers - drop the current set of injected headers, and replace with a new set
 * REST API: GET /proxy/:port/header/:name - get the value of an injected header
 * REST API: DELETE /proxy/:port/header/:name - delete a single injected header
+* All REST API handlers are now wrapped in try/catch blocks to ensure the proxy reports any serious errors back to any clients

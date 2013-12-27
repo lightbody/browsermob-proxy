@@ -46,41 +46,51 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> getProxies(Request request) throws Exception {
         this.logRequest("GET /proxy");
 
-        Collection<ProxyDescriptor> proxyList = new ArrayList<ProxyDescriptor> ();
-        for (ProxyServer proxy : proxyManager.get()) {
-            proxyList.add(new ProxyDescriptor(proxy.getPort()));
+        try {
+            Collection<ProxyDescriptor> proxyList = new ArrayList<ProxyDescriptor> ();
+            for (ProxyServer proxy : proxyManager.get()) {
+                proxyList.add(new ProxyDescriptor(proxy.getPort()));
+            }
+            return this.wrapSuccess(new ProxyListDescriptor(proxyList));
         }
-        return this.wrapSuccess(new ProxyListDescriptor(proxyList));
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Post
     public Reply<?> newProxy(Request request) throws Exception {
         this.logRequest("POST /proxy");
 
-        String systemProxyHost = System.getProperty("http.proxyHost");
-        String systemProxyPort = System.getProperty("http.proxyPort");
-        String httpProxy = request.param("httpProxy");
-        this.logParam("httpProxy", httpProxy);
-        Hashtable<String, String> options = new Hashtable<String, String>();
+        try {
+            String systemProxyHost = System.getProperty("http.proxyHost");
+            String systemProxyPort = System.getProperty("http.proxyPort");
+            String httpProxy = request.param("httpProxy");
+            this.logParam("httpProxy", httpProxy);
+            Hashtable<String, String> options = new Hashtable<String, String>();
 
-        // If the upstream proxy is specified via query params that should override any default system level proxy.
-        if (httpProxy != null) {
-            options.put("httpProxy", httpProxy);
-        } else if ((systemProxyHost != null) && (systemProxyPort != null)) {
-            options.put("httpProxy", String.format("%s:%s", systemProxyHost, systemProxyPort));
+            // If the upstream proxy is specified via query params that should override any default system level proxy.
+            if (httpProxy != null) {
+                options.put("httpProxy", httpProxy);
+            } else if ((systemProxyHost != null) && (systemProxyPort != null)) {
+                options.put("httpProxy", String.format("%s:%s", systemProxyHost, systemProxyPort));
+            }
+
+            String paramBindAddr = request.param("bindAddress");
+            this.logParam("bindAddress", paramBindAddr);
+
+            Integer paramPort = request.param("port") == null ? null : Integer.parseInt(request.param("port"));
+            this.logParam("port", paramPort);
+            LOG.fine("POST proxy instance on bindAddress `{}` & port `{}`",
+                    paramBindAddr, paramPort);
+
+            ProxyServer proxy = proxyManager.create(options, paramPort, paramBindAddr);
+
+            return this.wrapSuccess(new ProxyDescriptor(proxy.getPort()));
         }
-
-        String paramBindAddr = request.param("bindAddress");
-        this.logParam("bindAddress", paramBindAddr);
-
-        Integer paramPort = request.param("port") == null ? null : Integer.parseInt(request.param("port"));
-        this.logParam("port", paramPort);
-        LOG.fine("POST proxy instance on bindAddress `{}` & port `{}`",
-                paramBindAddr, paramPort);
-
-        ProxyServer proxy = proxyManager.create(options, paramPort, paramBindAddr);
-
-        return this.wrapSuccess(new ProxyDescriptor(proxy.getPort()));
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Get
@@ -88,14 +98,19 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> getHar(@Named("port") int port) {
         this.logRequest("GET /proxy/{}/har", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            Har har = proxy.getHar();
+
+            return this.wrapSuccess(har);
         }
-
-        Har har = proxy.getHar();
-
-        return this.wrapSuccess(har);
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -103,29 +118,35 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> newHar(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/har", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            String initialPageRef = request.param("initialPageRef");
+            this.logParam("initialPageRef", initialPageRef);
+
+            Har oldHar = proxy.newHar(initialPageRef);
+
+            String captureHeaders = request.param("captureHeaders");
+            this.logParam("captureHeaders", captureHeaders);
+            String captureContent = request.param("captureContent");
+            this.logParam("captureContent", captureContent);
+            String captureBinaryContent = request.param("captureBinaryContent");
+            this.logParam("captureBinaryContent", captureBinaryContent);
+            proxy.setCaptureHeaders(Boolean.parseBoolean(captureHeaders));
+            proxy.setCaptureContent(Boolean.parseBoolean(captureContent));
+            proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
+
+            if (oldHar != null) {
+                return this.wrapSuccess(oldHar);
+            } else {
+                return this.wrapNoContent();
+            }
         }
-
-        String initialPageRef = request.param("initialPageRef");
-        this.logParam("initialPageRef", initialPageRef);
-        Har oldHar = proxy.newHar(initialPageRef);
-
-        String captureHeaders = request.param("captureHeaders");
-        this.logParam("captureHeaders", captureHeaders);
-        String captureContent = request.param("captureContent");
-        this.logParam("captureContent", captureContent);
-        String captureBinaryContent = request.param("captureBinaryContent");
-        this.logParam("captureBinaryContent", captureBinaryContent);
-        proxy.setCaptureHeaders(Boolean.parseBoolean(captureHeaders));
-        proxy.setCaptureContent(Boolean.parseBoolean(captureContent));
-        proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
-
-        if (oldHar != null) {
-            return this.wrapSuccess(oldHar);
-        } else {
-            return this.wrapNoContent();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
         }
     }
 
@@ -134,16 +155,22 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> setPage(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/har/pageRef", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            String pageRef = request.param("pageRef");
+            this.logParam("pageRef", pageRef);
+
+            proxy.newPage(pageRef);
+
+            return this.wrapEmptySuccess();
         }
-
-        String pageRef = request.param("pageRef");
-        this.logParam("pageRef", pageRef);
-        proxy.newPage(pageRef);
-
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -151,18 +178,24 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> blacklist(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/blacklist", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            String blacklist = request.param("regex");
+            this.logParam("regex", blacklist);
+            int responseCode = parseResponseCode(request.param("status"));
+            this.logParam("status", request.param("status"));
+
+            proxy.blacklistRequests(blacklist, responseCode);
+
+            return this.wrapEmptySuccess();
         }
-
-        String blacklist = request.param("regex");
-        this.logParam("regex", blacklist);
-        int responseCode = parseResponseCode(request.param("status"));
-        this.logParam("status", request.param("status"));
-        proxy.blacklistRequests(blacklist, responseCode);
-
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Delete
@@ -170,13 +203,18 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> clearBlacklist(@Named("port") int port, Request request) {
         this.logRequest("DELETE /proxy/{}/blacklist", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-    	proxy.clearBlacklist();
-    	return this.wrapEmptySuccess();
+        	proxy.clearBlacklist();
+        	return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -184,18 +222,24 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> whitelist(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/whitelist", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            String regex = request.param("regex");
+            this.logParam("regex", regex);
+            int responseCode = parseResponseCode(request.param("status"));
+            this.logParam("status", request.param("status"));
+
+            proxy.whitelistRequests(regex.split(","), responseCode);
+
+            return this.wrapEmptySuccess();
         }
-
-        String regex = request.param("regex");
-        this.logParam("regex", regex);
-        int responseCode = parseResponseCode(request.param("status"));
-        this.logParam("status", request.param("status"));
-        proxy.whitelistRequests(regex.split(","), responseCode);
-
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Delete
@@ -203,13 +247,18 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> clearWhitelist(@Named("port") int port, Request request) {
         this.logRequest("DELETE /proxy/{}/whitelist", port);
 
-    	ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+        	ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-    	proxy.clearWhitelist();
-    	return this.wrapEmptySuccess();
+        	proxy.clearWhitelist();
+        	return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Post
@@ -217,17 +266,22 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> autoBasicAuth(@Named("port") int port, @Named("domain") String domain, Request request) {
         this.logRequest("POST /proxy/{}/auth/basic/{}", port, domain);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            Map<String, String> credentials = request.read(HashMap.class).as(Json.class);
+            this.logParam("username", credentials.get("username"));
+            this.logParam("password", credentials.get("password"));
+            proxy.autoBasicAuthorization(domain, credentials.get("username"), credentials.get("password"));
+
+            return this.wrapEmptySuccess();
         }
-
-        Map<String, String> credentials = request.read(HashMap.class).as(Json.class);
-        this.logParam("username", credentials.get("username"));
-        this.logParam("password", credentials.get("password"));
-        proxy.autoBasicAuthorization(domain, credentials.get("username"), credentials.get("password"));
-
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Post
@@ -235,19 +289,24 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> updateHeaders(@Named("port") int port, Request request) {
         this.logRequest("POST /proxy/{}/headers", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        Map<String, String> headers = request.read(Map.class).as(Json.class);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            this.logParam(key, value);
-            proxy.addHeader(key, value);
+            Map<String, String> headers = request.read(Map.class).as(Json.class);
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                this.logParam(key, value);
+                proxy.addHeader(key, value);
+            }
+            return this.wrapEmptySuccess();
         }
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -255,21 +314,26 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> setHeaders(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/headers", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        proxy.removeAllHeaders();
+            proxy.removeAllHeaders();
 
-        Map<String, String> headers = request.read(Map.class).as(Json.class);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            this.logParam(key, value);
-            proxy.addHeader(key, value);
+            Map<String, String> headers = request.read(Map.class).as(Json.class);
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                this.logParam(key, value);
+                proxy.addHeader(key, value);
+            }
+            return this.wrapEmptySuccess();
         }
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Delete
@@ -277,14 +341,19 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> removeAllHeaders(@Named("port") int port, Request request) {
         this.logRequest("DELETE /proxy/{}/headers", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            proxy.removeAllHeaders();
+
+            return this.wrapEmptySuccess();
         }
-
-        proxy.removeAllHeaders();
-
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Get
@@ -292,12 +361,17 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> getHeader(@Named("port") int port, @Named("name") String name, Request request) {
         this.logRequest("GET /proxy/{}/header/{}", port, name);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        return this.wrapSuccess(proxy.getHeader(name));
+            return this.wrapSuccess(proxy.getHeader(name));
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Delete
@@ -305,14 +379,19 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> removeHeader(@Named("port") int port, @Named("name") String name, Request request) {
         this.logRequest("DELETE /proxy/{}/header/{}", port, name);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            proxy.removeHeader(name);
+
+            return this.wrapEmptySuccess();
         }
-
-        proxy.removeHeader(name);
-
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
       }
 
     @Post
@@ -320,35 +399,40 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> addResponseInterceptor(@Named("port") int port, Request request) throws IOException, ScriptException {
         this.logRequest("POST /proxy/{}/interceptor/response", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        request.readTo(baos);
-
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        final ScriptEngine engine = mgr.getEngineByName("JavaScript");
-        Compilable compilable = (Compilable)  engine;
-        final CompiledScript script = compilable.compile(baos.toString());
-
-        proxy.addResponseInterceptor(new ResponseInterceptor() {
-            @Override
-            public void process(BrowserMobHttpResponse response, Har har) {
-                Bindings bindings = engine.createBindings();
-                bindings.put("response", response);
-                bindings.put("har", har);
-                bindings.put("log", LOG);
-                try {
-                    script.eval(bindings);
-                } catch (ScriptException e) {
-                    LOG.severe("Could not execute JS-based response interceptor", e);
-                }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
             }
-        });
 
-        return this.wrapEmptySuccess();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            request.readTo(baos);
+
+            ScriptEngineManager mgr = new ScriptEngineManager();
+            final ScriptEngine engine = mgr.getEngineByName("JavaScript");
+            Compilable compilable = (Compilable)  engine;
+            final CompiledScript script = compilable.compile(baos.toString());
+
+            proxy.addResponseInterceptor(new ResponseInterceptor() {
+                @Override
+                public void process(BrowserMobHttpResponse response, Har har) {
+                    Bindings bindings = engine.createBindings();
+                    bindings.put("response", response);
+                    bindings.put("har", har);
+                    bindings.put("log", LOG);
+                    try {
+                        script.eval(bindings);
+                    } catch (ScriptException e) {
+                        LOG.severe("Could not execute JS-based response interceptor", e);
+                    }
+                }
+            });
+
+            return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Post
@@ -356,35 +440,40 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> addRequestInterceptor(@Named("port") int port, Request request) throws IOException, ScriptException {
         this.logRequest("POST /proxy/{}/interceptor/request", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        request.readTo(baos);
-
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        final ScriptEngine engine = mgr.getEngineByName("JavaScript");
-        Compilable compilable = (Compilable)  engine;
-        final CompiledScript script = compilable.compile(baos.toString());
-
-        proxy.addRequestInterceptor(new RequestInterceptor() {
-            @Override
-            public void process(BrowserMobHttpRequest request, Har har) {
-                Bindings bindings = engine.createBindings();
-                bindings.put("request", request);
-                bindings.put("har", har);
-                bindings.put("log", LOG);
-                try {
-                    script.eval(bindings);
-                } catch (ScriptException e) {
-                    LOG.severe("Could not execute JS-based response interceptor", e);
-                }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
             }
-        });
 
-        return wrapEmptySuccess();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            request.readTo(baos);
+
+            ScriptEngineManager mgr = new ScriptEngineManager();
+            final ScriptEngine engine = mgr.getEngineByName("JavaScript");
+            Compilable compilable = (Compilable)  engine;
+            final CompiledScript script = compilable.compile(baos.toString());
+
+            proxy.addRequestInterceptor(new RequestInterceptor() {
+                @Override
+                public void process(BrowserMobHttpRequest request, Har har) {
+                    Bindings bindings = engine.createBindings();
+                    bindings.put("request", request);
+                    bindings.put("har", har);
+                    bindings.put("log", LOG);
+                    try {
+                        script.eval(bindings);
+                    } catch (ScriptException e) {
+                        LOG.severe("Could not execute JS-based response interceptor", e);
+                    }
+                }
+            });
+
+            return wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -392,60 +481,65 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> limit(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/limit", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
-
-        StreamManager streamManager = proxy.getStreamManager();
-        String upstreamKbps = request.param("upstreamKbps");
-        this.logParam("upstreamKbps", upstreamKbps);
-        if (upstreamKbps != null) {
-            try {
-                streamManager.setUpstreamKbps(Integer.parseInt(upstreamKbps));
-                streamManager.enable();
-            } catch (NumberFormatException e) { }
-        }
-        String downstreamKbps = request.param("downstreamKbps");
-        this.logParam("downstreamKbps", downstreamKbps);
-        if (downstreamKbps != null) {
-            try {
-                streamManager.setDownstreamKbps(Integer.parseInt(downstreamKbps));
-                streamManager.enable();
-            } catch (NumberFormatException e) { }
-        }
-        String latency = request.param("latency");
-        this.logParam("latency", latency);
-        if (latency != null) {
-            try {
-                streamManager.setLatency(Integer.parseInt(latency));
-                streamManager.enable();
-            } catch (NumberFormatException e) { }
-        }
-        String payloadPercentage = request.param("payloadPercentage");
-        this.logParam("payloadPercentage", payloadPercentage);
-        if (payloadPercentage != null) {
-            try {
-                streamManager.setPayloadPercentage(Integer.parseInt(payloadPercentage));
-            } catch (NumberFormatException e) { }
-        }
-        String maxBitsPerSecond = request.param("maxBitsPerSecond");
-        this.logParam("maxBitsPerSecond", maxBitsPerSecond);
-        if (maxBitsPerSecond != null) {
-            try {
-                streamManager.setMaxBitsPerSecondThreshold(Integer.parseInt(maxBitsPerSecond));
-            } catch (NumberFormatException e) { }
-        }
-        String enable = request.param("enable");
-        this.logParam("enable", enable);
-        if (enable != null) {
-            if( Boolean.parseBoolean(enable) ) {
-                streamManager.enable();
-            } else {
-                streamManager.disable();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
             }
+
+            StreamManager streamManager = proxy.getStreamManager();
+            String upstreamKbps = request.param("upstreamKbps");
+            this.logParam("upstreamKbps", upstreamKbps);
+            if (upstreamKbps != null) {
+                try {
+                    streamManager.setUpstreamKbps(Integer.parseInt(upstreamKbps));
+                    streamManager.enable();
+                } catch (NumberFormatException e) { }
+            }
+            String downstreamKbps = request.param("downstreamKbps");
+            this.logParam("downstreamKbps", downstreamKbps);
+            if (downstreamKbps != null) {
+                try {
+                    streamManager.setDownstreamKbps(Integer.parseInt(downstreamKbps));
+                    streamManager.enable();
+                } catch (NumberFormatException e) { }
+            }
+            String latency = request.param("latency");
+            this.logParam("latency", latency);
+            if (latency != null) {
+                try {
+                    streamManager.setLatency(Integer.parseInt(latency));
+                    streamManager.enable();
+                } catch (NumberFormatException e) { }
+            }
+            String payloadPercentage = request.param("payloadPercentage");
+            this.logParam("payloadPercentage", payloadPercentage);
+            if (payloadPercentage != null) {
+                try {
+                    streamManager.setPayloadPercentage(Integer.parseInt(payloadPercentage));
+                } catch (NumberFormatException e) { }
+            }
+            String maxBitsPerSecond = request.param("maxBitsPerSecond");
+            this.logParam("maxBitsPerSecond", maxBitsPerSecond);
+            if (maxBitsPerSecond != null) {
+                try {
+                    streamManager.setMaxBitsPerSecondThreshold(Integer.parseInt(maxBitsPerSecond));
+                } catch (NumberFormatException e) { }
+            }
+            String enable = request.param("enable");
+            this.logParam("enable", enable);
+            if (enable != null) {
+                if( Boolean.parseBoolean(enable) ) {
+                    streamManager.enable();
+                } else {
+                    streamManager.disable();
+                }
+            }
+            return this.wrapEmptySuccess();
         }
-        return this.wrapEmptySuccess();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -453,40 +547,45 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> timeout(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/timeout", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        String requestTimeout = request.param("requestTimeout");
-        this.logParam("requestTimeout", requestTimeout);
-        if (requestTimeout != null) {
-            try {
-                proxy.setRequestTimeout(Integer.parseInt(requestTimeout));
-            } catch (NumberFormatException e) { }
+            String requestTimeout = request.param("requestTimeout");
+            this.logParam("requestTimeout", requestTimeout);
+            if (requestTimeout != null) {
+                try {
+                    proxy.setRequestTimeout(Integer.parseInt(requestTimeout));
+                } catch (NumberFormatException e) { }
+            }
+            String readTimeout = request.param("readTimeout");
+            this.logParam("readTimeout", readTimeout);
+            if (readTimeout != null) {
+                try {
+                    proxy.setSocketOperationTimeout(Integer.parseInt(readTimeout));
+                } catch (NumberFormatException e) { }
+            }
+            String connectionTimeout = request.param("connectionTimeout");
+            this.logParam("connectionTimeout", connectionTimeout);
+            if (connectionTimeout != null) {
+                try {
+                    proxy.setConnectionTimeout(Integer.parseInt(connectionTimeout));
+                } catch (NumberFormatException e) { }
+            }
+            String dnsCacheTimeout = request.param("dnsCacheTimeout");
+            this.logParam("dnsCacheTimeout", dnsCacheTimeout);
+            if (dnsCacheTimeout != null) {
+                try {
+                    proxy.setDNSCacheTimeout(Integer.parseInt(dnsCacheTimeout));
+                } catch (NumberFormatException e) { }
+            }
+            return this.wrapEmptySuccess();
         }
-        String readTimeout = request.param("readTimeout");
-        this.logParam("readTimeout", readTimeout);
-        if (readTimeout != null) {
-            try {
-                proxy.setSocketOperationTimeout(Integer.parseInt(readTimeout));
-            } catch (NumberFormatException e) { }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
         }
-        String connectionTimeout = request.param("connectionTimeout");
-        this.logParam("connectionTimeout", connectionTimeout);
-        if (connectionTimeout != null) {
-            try {
-                proxy.setConnectionTimeout(Integer.parseInt(connectionTimeout));
-            } catch (NumberFormatException e) { }
-        }
-        String dnsCacheTimeout = request.param("dnsCacheTimeout");
-        this.logParam("dnsCacheTimeout", dnsCacheTimeout);
-        if (dnsCacheTimeout != null) {
-            try {
-                proxy.setDNSCacheTimeout(Integer.parseInt(dnsCacheTimeout));
-            } catch (NumberFormatException e) { }
-        }
-        return this.wrapEmptySuccess();
     }
 
     @Delete
@@ -494,13 +593,18 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> delete(@Named("port") int port) throws Exception {
         this.logRequest("DELETE /proxy/{}", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        proxyManager.delete(port);
-        return this.wrapEmptySuccess();
+            proxyManager.delete(port);
+            return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Post
@@ -508,23 +612,28 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> remapHosts(@Named("port") int port, Request request) {
         this.logRequest("POST /proxy/{}/hosts", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
+
+            @SuppressWarnings("unchecked") Map<String, String> headers = request.read(Map.class).as(Json.class);
+
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                this.logParam(key, value);
+                proxy.remapHost(key, value);
+                proxy.setDNSCacheTimeout(0);
+                proxy.clearDNSCache();
+            }
+
+            return this.wrapEmptySuccess();
         }
-
-        @SuppressWarnings("unchecked") Map<String, String> headers = request.read(Map.class).as(Json.class);
-
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            this.logParam(key, value);
-            proxy.remapHost(key, value);
-            proxy.setDNSCacheTimeout(0);
-            proxy.clearDNSCache();
+        catch (Exception e) {
+            return this.wrapError(e.toString());
         }
-
-        return this.wrapEmptySuccess();
     }
 
 
@@ -533,17 +642,22 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> wait(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/wait", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        String quietPeriodInMs = request.param("quietPeriodInMs");
-        this.logParam("quietPeriodInMs", quietPeriodInMs);
-        String timeoutInMs = request.param("timeoutInMs");
-        this.logParam("timeoutInMs", timeoutInMs);
-        proxy.waitForNetworkTrafficToStop(Integer.parseInt(quietPeriodInMs), Integer.parseInt(timeoutInMs));
-        return this.wrapEmptySuccess();
+            String quietPeriodInMs = request.param("quietPeriodInMs");
+            this.logParam("quietPeriodInMs", quietPeriodInMs);
+            String timeoutInMs = request.param("timeoutInMs");
+            this.logParam("timeoutInMs", timeoutInMs);
+            proxy.waitForNetworkTrafficToStop(Integer.parseInt(quietPeriodInMs), Integer.parseInt(timeoutInMs));
+            return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Delete
@@ -551,13 +665,18 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> clearDnsCache(@Named("port") int port) throws Exception {
         this.logRequest("DELETE /proxy/{}/dns/cache", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-    	proxy.clearDNSCache();
-        return this.wrapEmptySuccess();
+        	proxy.clearDNSCache();
+            return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -565,17 +684,22 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> rewriteUrl(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/rewrite", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        String match = request.param("matchRegex");
-        this.logParam("matchRegex", match);
-        String replace = request.param("replace");
-        this.logParam("replace", replace);
-        proxy.rewriteUrl(match, replace);
-        return this.wrapEmptySuccess();
+            String match = request.param("matchRegex");
+            this.logParam("matchRegex", match);
+            String replace = request.param("replace");
+            this.logParam("replace", replace);
+            proxy.rewriteUrl(match, replace);
+            return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Delete
@@ -583,13 +707,18 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> clearRewriteRules(@Named("port") int port, Request request) {
         this.logRequest("DELETE /proxy/{}/rewrite", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-    	proxy.clearRewriteRules();
-    	return this.wrapEmptySuccess();
+        	proxy.clearRewriteRules();
+        	return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     @Put
@@ -597,15 +726,20 @@ public class ProxyResource extends BaseBrick {
     public Reply<?> retryCount(@Named("port") int port, Request request) {
         this.logRequest("PUT /proxy/{}/retry", port);
 
-        ProxyServer proxy = proxyManager.get(port);
-        if (proxy == null) {
-            return this.wrapNotFound();
-        }
+        try {
+            ProxyServer proxy = proxyManager.get(port);
+            if (proxy == null) {
+                return this.wrapNotFound();
+            }
 
-        String count = request.param("retrycount");
-        this.logParam("retrycount", count);
-        proxy.setRetryCount(Integer.parseInt(count));
-        return this.wrapEmptySuccess();
+            String count = request.param("retrycount");
+            this.logParam("retrycount", count);
+            proxy.setRetryCount(Integer.parseInt(count));
+            return this.wrapEmptySuccess();
+        }
+        catch (Exception e) {
+            return this.wrapError(e.toString());
+        }
     }
 
     private int parseResponseCode(String response) {
