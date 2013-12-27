@@ -5,6 +5,7 @@ public class FeatureFlags {
     private boolean featureFlags = true;
     private boolean requestLogs = false;
     private boolean enhancedReplies = false;
+    private boolean headerGetDelete = true;
 
     /**
      * private constructor
@@ -23,6 +24,10 @@ public class FeatureFlags {
 
     public boolean getFeatureFlags() {
         return this.featureFlags;
+    }
+
+    public boolean getHeaderGetDelete() {
+        return this.headerGetDelete;
     }
 
     public boolean getRequestLogs() {

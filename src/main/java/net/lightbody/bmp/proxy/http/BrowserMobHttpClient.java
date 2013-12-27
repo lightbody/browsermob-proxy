@@ -869,7 +869,7 @@ public class BrowserMobHttpClient {
 		}
 	}
 
-    
+
     public void shutdown() {
         shutdown = true;
         abortActiveRequests();
@@ -965,9 +965,27 @@ public class BrowserMobHttpClient {
     	// synchronized to guard against concurrent modification
     	whitelistEntry = null;
     }
-    
+
     public void addHeader(String name, String value) {
         additionalHeaders.put(name, value);
+    }
+
+    public String getHeader(String name) {
+        if (additionalHeaders.containsKey(name)) {
+            return additionalHeaders.get(name);
+        }
+
+        return null;
+    }
+
+    public void removeHeader(String name) {
+        if (additionalHeaders.containsKey(name)) {
+            additionalHeaders.remove(name);
+        }
+    }
+
+    public void removeAllHeaders() {
+        additionalHeaders.clear();
     }
 
     public void prepareForBrowser() {

@@ -250,6 +250,71 @@ public class ProxyResource extends BaseBrick {
         return this.wrapEmptySuccess();
     }
 
+    @Put
+    @At("/:port/headers")
+    public Reply<?> setHeaders(@Named("port") int port, Request request) {
+        this.logRequest("PUT /proxy/{}/headers", port);
+
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return this.wrapNotFound();
+        }
+
+        proxy.removeAllHeaders();
+
+        Map<String, String> headers = request.read(Map.class).as(Json.class);
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            this.logParam(key, value);
+            proxy.addHeader(key, value);
+        }
+        return this.wrapEmptySuccess();
+    }
+
+    @Delete
+    @At("/:port/headers")
+    public Reply<?> removeAllHeaders(@Named("port") int port, Request request) {
+        this.logRequest("DELETE /proxy/{}/headers", port);
+
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return this.wrapNotFound();
+        }
+
+        proxy.removeAllHeaders();
+
+        return this.wrapEmptySuccess();
+    }
+
+    @Get
+    @At("/:port/header/:name")
+    public Reply<?> getHeader(@Named("port") int port, @Named("name") String name, Request request) {
+        this.logRequest("GET /proxy/{}/header/{}", port, name);
+
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return this.wrapNotFound();
+        }
+
+        return this.wrapSuccess(proxy.getHeader(name));
+    }
+
+    @Delete
+    @At("/:port/header/:name")
+    public Reply<?> removeHeader(@Named("port") int port, @Named("name") String name, Request request) {
+        this.logRequest("DELETE /proxy/{}/header/{}", port, name);
+
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return this.wrapNotFound();
+        }
+
+        proxy.removeHeader(name);
+
+        return this.wrapEmptySuccess();
+      }
+
     @Post
     @At("/:port/interceptor/response")
     public Reply<?> addResponseInterceptor(@Named("port") int port, Request request) throws IOException, ScriptException {

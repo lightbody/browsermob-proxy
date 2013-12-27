@@ -222,3 +222,7 @@ The full list of tweaks is:
 * REST API: GET /features - returns a list of implemented extra features, and whether they are currently active or not
 * REST API: POST / DELETE /features/requestLogs - enable / disable logging more info about the requests received by the proxy's REST API (very handy for building REST clients for the proxy)
 * REST API: POST / DELETE /features/enhancedReplies - enable / disable JSON replies containing explicit 'error' or 'success' info
+* REST API: DELETE /proxy/:port/headers - drop the current set of injected headers
+* REST API: PUT /proxy/:port/headers - drop the current set of injected headers, and replace with a new set
+* REST API: GET /proxy/:port/header/:name - get the value of an injected header
+* REST API: DELETE /proxy/:port/header/:name - delete a single injected header
