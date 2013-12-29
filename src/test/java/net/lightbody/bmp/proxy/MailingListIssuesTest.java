@@ -8,16 +8,20 @@ import net.lightbody.bmp.proxy.http.BrowserMobHttpResponse;
 import net.lightbody.bmp.proxy.http.RequestInterceptor;
 import net.lightbody.bmp.proxy.http.ResponseInterceptor;
 import net.lightbody.bmp.proxy.util.IOUtils;
+import net.lightbody.bmp.proxy.util.Log;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
+import org.junit.After;
+import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -35,6 +39,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 public class MailingListIssuesTest extends DummyServerTest {
+    private static final Log LOG = new Log();
+
+    private final String DUMMY_SERVER_BASE_URL = "http://127.0.0.1:" + DUMMY_SERVER_PORT;
+    private final String DUMMY_SERVER_A_TXT = DUMMY_SERVER_BASE_URL + "/a.txt";
+
+    private WebDriver driver;
+
+    @After
+    public void shutdownWebDriver() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
+
     @Test
     public void testThatInterceptorIsCalled() throws IOException, InterruptedException {
         final boolean[] interceptorHit = {false};
@@ -45,7 +63,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is a.txt"));
         Assert.assertTrue(interceptorHit[0]);
@@ -61,7 +79,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is a.txt"));
         Assert.assertEquals("Remote host incorrect", "127.0.0.1", remoteHost[0]);
@@ -77,7 +95,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is a.txt"));
     }
@@ -88,14 +106,14 @@ public class MailingListIssuesTest extends DummyServerTest {
             @Override
             public void process(BrowserMobHttpRequest request, Har har) {
                 try {
-                    request.getMethod().setURI(new URI("http://127.0.0.1:8080/b.txt"));
+                    request.getMethod().setURI(new URI(DUMMY_SERVER_BASE_URL + "/b.txt"));
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         Assert.assertTrue(body.contains("this is b.txt"));
     }
@@ -112,7 +130,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
 
         ThreadUtils.waitFor(new ThreadUtils.WaitCondition() {
             @Override
@@ -129,7 +147,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        String body = IOUtils.readFully(client.execute(new HttpGet("http://127.0.0.1:8080/a.txt")).getEntity().getContent());
+        String body = IOUtils.readFully(client.execute(new HttpGet(DUMMY_SERVER_A_TXT)).getEntity().getContent());
         System.out.println("Done with request");
 
         Assert.assertTrue(body.contains("this is a.txt"));
@@ -157,12 +175,12 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        HttpPost post = new HttpPost("http://127.0.0.1:8080/jsonrpc/");
+        HttpPost post = new HttpPost(DUMMY_SERVER_BASE_URL + "/jsonrpc/");
         HttpEntity entity = new StringEntity("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"test\",\"params\":{}}");
         post.setEntity(entity);
-    	post.addHeader("Accept", "application/json-rpc");
-    	post.addHeader("Content-Type", "application/json; charset=UTF-8");
-    
+        post.addHeader("Accept", "application/json-rpc");
+        post.addHeader("Content-Type", "application/json; charset=UTF-8");
+
         String body = IOUtils.readFully(client.execute(post).getEntity().getContent());
 
         Assert.assertTrue(body.contains("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{}}"));
@@ -189,7 +207,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        HttpPost post = new HttpPost("http://127.0.0.1:8080/jsonrpc/");
+        HttpPost post = new HttpPost(DUMMY_SERVER_BASE_URL + "/jsonrpc/");
         post.setEntity(new UrlEncodedFormEntity(Collections.singletonList(new BasicNameValuePair("foo", "bar"))));
 
         IOUtils.readFully(client.execute(post).getEntity().getContent());
@@ -219,7 +237,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        InputStream is1 = client.execute(new HttpGet("http://127.0.0.1:8080/c.png")).getEntity().getContent();
+        InputStream is1 = client.execute(new HttpGet(DUMMY_SERVER_BASE_URL + "/c.png")).getEntity().getContent();
         ByteArrayOutputStream o1 = new ByteArrayOutputStream();
         IOUtils.copy(is1, o1);
         ByteArrayOutputStream o2 = new ByteArrayOutputStream();
@@ -251,7 +269,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         proxy.setCaptureContent(true);
         proxy.newHar("Test");
 
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/a.txt?foo=bar&a=1%262");
+        HttpGet get = new HttpGet(DUMMY_SERVER_A_TXT + "?foo=bar&a=1%262");
         client.execute(get);
 
         Har har = proxy.getHar();
@@ -283,7 +301,7 @@ public class MailingListIssuesTest extends DummyServerTest {
         dummy.getHandler().setMinGzipLength(1);
 
 
-        HttpGet get = new HttpGet("http://127.0.0.1:8080/a.txt");
+        HttpGet get = new HttpGet(DUMMY_SERVER_A_TXT);
         get.addHeader("Accept-Encoding", "gzip");
         String body = IOUtils.readFully(new GZIPInputStream(client.execute(get).getEntity().getContent()));
         System.out.println("Done with request");
@@ -324,7 +342,7 @@ public class MailingListIssuesTest extends DummyServerTest {
             }
         });
 
-        HttpPost post = new HttpPost("http://127.0.0.1:8080/echo/");
+        HttpPost post = new HttpPost(DUMMY_SERVER_BASE_URL + "/echo/");
         HttpEntity entity = new StringEntity("testParam=testValue");
         post.setEntity(entity);
         post.addHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -344,36 +362,39 @@ public class MailingListIssuesTest extends DummyServerTest {
 
         boolean postDataCapturedAndLoggedCorrectly = capturedPostData[0].equals(capturedPostData[1]);
 
-        Assert.assertEquals(true,postDataCapturedAndLoggedCorrectly);
+        Assert.assertEquals(true, postDataCapturedAndLoggedCorrectly);
 
     }
 
     @Test
-    public void issue27() throws Exception{
+    public void issue27() throws Exception {
         // see: https://github.com/lightbody/browsermob-proxy/issues/27
 
-        // start the proxy
-        ProxyServer server = new ProxyServer(4444);
-        server.start();
-        server.setCaptureHeaders(true);
-        server.setCaptureContent(true);
+        // configure the proxy
+        proxy.setCaptureHeaders(true);
+        proxy.setCaptureContent(true);
 
         // get the selenium proxy object
-        Proxy proxy = server.seleniumProxy();
+        Proxy seleniumProxy = proxy.seleniumProxy();
         DesiredCapabilities capabilities = new DesiredCapabilities();
 
-        capabilities.setCapability(CapabilityType.PROXY, proxy);
+        capabilities.setCapability(CapabilityType.PROXY, seleniumProxy);
 
-        // start the browser up
-        WebDriver driver = new FirefoxDriver(capabilities);
+        // start the browser up and skip if it can't find FireFox.
+        try {
+            driver = new FirefoxDriver(capabilities);
+        } catch (WebDriverException wde) {
+            LOG.warn("WebDriverException instantiating FirefoxDriver.  Browser is most likely not installed.  Skipping this test. ", wde);
+            Assume.assumeNoException(wde);
+        }
 
-        server.newHar("assertselenium.com");
+        proxy.newHar("assertselenium.com");
 
         driver.get("http://whatsmyuseragent.com");
         //driver.get("https://google.com");
 
         // get the HAR data
-        Har har = server.getHar();
+        Har har = proxy.getHar();
 
         // make sure something came back in the har
         Assert.assertTrue(!har.getLog().getEntries().isEmpty());
@@ -381,34 +402,34 @@ public class MailingListIssuesTest extends DummyServerTest {
         // show that we can capture the HTML of the root page
         String text = har.getLog().getEntries().get(0).getResponse().getContent().getText();
         Assert.assertTrue(text.contains("<title>Whats My User Agent?</title>"));
-
-        server.stop();
-        driver.quit();
     }
 
     @Test
-    public void googleCaSslNotWorkingInFirefox() throws Exception{
-        // start the proxy
-        ProxyServer server = new ProxyServer(4444);
-        server.start();
-        server.setCaptureHeaders(true);
-        server.setCaptureContent(true);
+    public void googleCaSslNotWorkingInFirefox() throws Exception {
+        // configure the proxy
+        proxy.setCaptureHeaders(true);
+        proxy.setCaptureContent(true);
 
         // get the selenium proxy object
-        Proxy proxy = server.seleniumProxy();
+        Proxy seleniumProxy = proxy.seleniumProxy();
         DesiredCapabilities capabilities = new DesiredCapabilities();
 
-        capabilities.setCapability(CapabilityType.PROXY, proxy);
+        capabilities.setCapability(CapabilityType.PROXY, seleniumProxy);
 
-        // start the browser up
-        WebDriver driver = new FirefoxDriver(capabilities);
+        // start the browser up and skip if it can't find FireFox.
+        try {
+            driver = new FirefoxDriver(capabilities);
+        } catch (WebDriverException wde) {
+            LOG.warn("WebDriverException instantiating FirefoxDriver.  Browser is most likely not installed.  Skipping this test. ", wde);
+            Assume.assumeNoException(wde);
+        }
 
-        server.newHar("Google.ca");
+        proxy.newHar("Google.ca");
 
         driver.get("https://www.google.ca/");
 
         // get the HAR data
-        Har har = server.getHar();
+        Har har = proxy.getHar();
 
         // make sure something came back in the har
         Assert.assertTrue(!har.getLog().getEntries().isEmpty());
@@ -416,10 +437,6 @@ public class MailingListIssuesTest extends DummyServerTest {
         // show that we can capture the HTML of the root page
         String text = har.getLog().getEntries().get(0).getResponse().getContent().getText();
         Assert.assertTrue(text.contains("<title>Google</title>"));
-
-        server.stop();
-        driver.quit();
     }
-
 
 }

@@ -25,7 +25,8 @@ public abstract class ProxyServerTest {
         Main.configureLogging();
     }
 
-    protected ProxyServer proxy = new ProxyServer(8081);
+    protected final int PROXY_PORT = 8081;
+    protected ProxyServer proxy = new ProxyServer(PROXY_PORT);
     protected DefaultHttpClient client = getNewHttpClient();
 
     @Before
@@ -42,7 +43,7 @@ public abstract class ProxyServerTest {
             sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
             HttpParams params = new BasicHttpParams();
-            params.setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost("127.0.0.1", 8081, "http"));
+            params.setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost("127.0.0.1", PROXY_PORT, "http"));
             HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
             HttpProtocolParams.setContentCharset(params, HTTP.UTF_8);
 
