@@ -25,8 +25,10 @@ import javax.script.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -67,7 +69,7 @@ public class ProxyResource {
 
         String paramBindAddr = request.param("bindAddress");
         Integer paramPort = request.param("port") == null ? null : Integer.parseInt(request.param("port"));
-        LOG.fine("POST proxy instance on bindAddress `{}` & port `{}`", 
+        LOG.fine("POST proxy instance on bindAddress `{}` & port `{}`",
                 paramBindAddr, paramPort);
         ProxyServer proxy = proxyManager.create(options, paramPort, paramBindAddr);
 
@@ -76,13 +78,19 @@ public class ProxyResource {
 
     @Get
     @At("/:port/har")
-    public Reply<?> getHar(@Named("port") int port) {
+    public Reply<?> getHar(@Named("port") int port, Request request) {
         ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
             return Reply.saying().notFound();
         }
 
-        Har har = proxy.getHar();
+        String pageRef = request.param("pageRef");
+        Har har;
+        if (pageRef == null) {
+          har = proxy.getHar();
+        } else {
+          har = proxy.getHar(new HashSet<String>(Arrays.asList(pageRef.split(","))));
+        }
 
         return Reply.with(har).as(Json.class);
     }
@@ -100,10 +108,10 @@ public class ProxyResource {
 
         String captureHeaders = request.param("captureHeaders");
         String captureContent = request.param("captureContent");
-        String captureBinaryContent = request.param("captureBinaryContent"); 
+        String captureBinaryContent = request.param("captureBinaryContent");
         proxy.setCaptureHeaders(Boolean.parseBoolean(captureHeaders));
         proxy.setCaptureContent(Boolean.parseBoolean(captureContent));
-        proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent)); 
+        proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
 
         if (oldHar != null) {
             return Reply.with(oldHar).as(Json.class);
@@ -140,7 +148,7 @@ public class ProxyResource {
 
         return Reply.saying().ok();
     }
-    
+
     @Delete
     @At("/:port/blacklist")
     public Reply<?> clearBlacklist(@Named("port") int port, Request request) {
@@ -167,7 +175,7 @@ public class ProxyResource {
 
         return Reply.saying().ok();
     }
-    
+
     @Delete
     @At("/:port/whitelist")
     public Reply<?> clearWhitelist(@Named("port") int port, Request request) {
@@ -330,7 +338,7 @@ public class ProxyResource {
         }
         return Reply.saying().ok();
     }
-    
+
     @Put
     @At("/:port/timeout")
     public Reply<?> timeout(@Named("port") int port, Request request) {
@@ -413,7 +421,7 @@ public class ProxyResource {
         proxy.waitForNetworkTrafficToStop(Integer.parseInt(quietPeriodInMs), Integer.parseInt(timeoutInMs));
         return Reply.saying().ok();
     }
-    
+
     @Delete
     @At("/:port/dns/cache")
     public Reply<?> clearDnsCache(@Named("port") int port) throws Exception {
@@ -438,8 +446,8 @@ public class ProxyResource {
         String replace = request.param("replace");
         proxy.rewriteUrl(match, replace);
         return Reply.saying().ok();
-    } 
-    
+    }
+
     @Delete
     @At("/:port/rewrite")
     public Reply<?> clearRewriteRules(@Named("port") int port, Request request) {
@@ -451,7 +459,7 @@ public class ProxyResource {
     	proxy.clearRewriteRules();
     	return Reply.saying().ok();
     }
-    
+
     @Put
     @At("/:port/retry")
     public Reply<?> retryCount(@Named("port") int port, Request request) {
@@ -463,8 +471,8 @@ public class ProxyResource {
         String count = request.param("retrycount");
         proxy.setRetryCount(Integer.parseInt(count));
         return Reply.saying().ok();
-    } 
-    
+    }
+
     private int parseResponseCode(String response) {
         int responseCode = 200;
         if (response != null) {
