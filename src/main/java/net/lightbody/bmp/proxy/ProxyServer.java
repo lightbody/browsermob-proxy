@@ -23,6 +23,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -212,6 +213,20 @@ public class ProxyServer {
         currentPage.getPageTimings().setOnLoad(new Date().getTime() - currentPage.getStartedDateTime().getTime());
         client.setHarPageRef(null);
         currentPage = null;
+    }
+
+    public void deletePages(Set<String> pageRef) {
+        pageRef.remove(currentPage.getId());
+
+        // Delete the given set of pages by preserving the rest of existing pages.
+        Set<String> filteredPages = new HashSet<String>();
+        Har har = getHar();
+        for (HarPage page : har.getLog().getPages()) {
+            if (!pageRef.contains(page.getId())) {
+                filteredPages.add(page.getId());
+            }
+        }
+        har.setLog(new PageRefFilteredHarLog(har.getLog(), filteredPages));
     }
 
     public void setRetryCount(int count) {

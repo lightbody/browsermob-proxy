@@ -134,6 +134,20 @@ public class ProxyResource {
         return Reply.saying().ok();
     }
 
+    @Delete
+    @At("/:port/har/pageRef/:pageRef")
+    public Reply<?> deletePages(@Named("port") int port, @Named("pageRef") String pageRef) {
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        // NOTE: Query parameters can't be used with DELETE method.
+        proxy.deletePages(new HashSet<String>(Arrays.asList(pageRef.split(","))));
+
+        return Reply.saying().ok();
+    }
+
     @Put
     @At("/:port/blacklist")
     public Reply<?> blacklist(@Named("port") int port, Request request) {

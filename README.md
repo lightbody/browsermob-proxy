@@ -51,6 +51,7 @@ Once that is done, a new proxy will be available on the port returned. All you h
   - captureBinaryContent - Boolean, capture binary content
  - PUT /proxy/[port]/har/pageRef - starts a new page on the existing HAR. Supports the following parameters:
   - pageRef - the string name of the first page ref that should be used in the HAR. Defaults to "Page N" where N is the next page number.
+ - DELETE /proxy/[port]/har/pageRef/[pageRef] - deletes existing pages identified by [pageRef]. [pageRef] can take a form of a comma separated list. The current page cannot be deleted.
  - DELETE /proxy/[port] - shuts down the proxy and closes the port
  - GET /proxy/[port]/har - returns the JSON/HAR content representing all the HTTP traffic passed through the proxy. Supports the following parameters:
   - pageRef - a comma separated list of pageRefs to retrieve. If omitted all the pageRefs will be returned.
@@ -102,6 +103,14 @@ Now when traffic goes through port 9091 it will be attached to a page reference 
 That will ensure no more HTTP requests get attached to the old pageRef (Foo) and start getting attached to the new pageRef (Bar). You can also get the HAR content at any time like so:
 
     [~]$ curl http://localhost:8080/proxy/9091/har
+
+If you are interested only in the page Bar, you could query
+
+    [~]$ curl http://localhost:8080/proxy/9091/har?pageRef=Bar
+
+Or even you could delete the page Foo:
+
+    [~]$ curl -X DELETE http://localhost:8080/proxy/9091/har/pageRef/Foo
 
 Sometimes you will want to route requests through an upstream proxy server. In this case specify your proxy server by adding the httpProxy parameter to your create proxy request:
 
