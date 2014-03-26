@@ -716,7 +716,16 @@ public class BrowserMobHttpClient {
 
                 if (urlEncoded || URLEncodedUtils.isEncoded(entity)) {
                     try {
-                        final String content = new String(req.getCopy().toByteArray(), "UTF-8");
+                        String content = new String(req.getCopy().toByteArray(), "UTF-8");
+                        
+                        // Sometimes this crappy 'copy' doesn't work, something to do with the ClonedInputStream. Try to get it directly.
+                        if(content != null && content.isEmpty()){
+                            InputStream isContent = req.getInputStreamEntity().getContent();
+                            if(isContent != null){
+                                content = org.apache.commons.io.IOUtils.toString(isContent);
+                            }
+                        }
+                        
                         if (content != null && content.length() > 0) {
                             List<NameValuePair> result = new ArrayList<NameValuePair>();
                             URLEncodedUtils.parse(result, new Scanner(content), null);
