@@ -279,7 +279,7 @@ public class ProxyServer {
     public void rewriteUrl(String match, String replace) {
         client.rewriteUrl(match, replace);
     }
-    
+
     public void clearRewriteRules() {
     	client.clearRewriteRules();
     }
@@ -287,7 +287,7 @@ public class ProxyServer {
     public void blacklistRequests(String pattern, int responseCode) {
         client.blacklistRequests(pattern, responseCode);
     }
-    
+
     public void clearBlacklist() {
     	client.clearBlacklist();
     }
@@ -295,13 +295,25 @@ public class ProxyServer {
     public void whitelistRequests(String[] patterns, int responseCode) {
         client.whitelistRequests(patterns, responseCode);
     }
-    
+
     public void clearWhitelist() {
     	client.clearWhitelist();
     }
 
     public void addHeader(String name, String value) {
         client.addHeader(name, value);
+    }
+
+    public String getHeader(String name) {
+        return client.getHeader(name);
+    }
+
+    public void removeHeader(String name) {
+        client.removeHeader(name);
+    }
+
+    public void removeAllHeaders() {
+        client.removeAllHeaders();
     }
 
     public void setCaptureHeaders(boolean captureHeaders) {
@@ -311,7 +323,7 @@ public class ProxyServer {
     public void setCaptureContent(boolean captureContent) {
         client.setCaptureContent(captureContent);
     }
-    
+
     public void setCaptureBinaryContent(boolean captureBinaryContent) {
         client.setCaptureBinaryContent(captureBinaryContent);
     }
@@ -348,7 +360,7 @@ public class ProxyServer {
                         lastCompleted = end;
                     }
                 }
-                
+
                 return lastCompleted != null && System.currentTimeMillis() - lastCompleted.getTime() >= quietPeriodInMs;
             }
         }, TimeUnit.MILLISECONDS, timeoutInMs);

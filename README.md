@@ -56,7 +56,7 @@ Once that is done, a new proxy will be available on the port returned. All you h
  - PUT /proxy/[port]/whitelist - Sets a list of URL patterns to whitelist. Takes the following parameters:
   - regex - a comma separated list of regular expressions
   - status - the HTTP status code to return for URLs that do not match the whitelist
- - DELETE /proxy/[port]/whitelist - Clears all URL patterns from the whitelist 
+ - DELETE /proxy/[port]/whitelist - Clears all URL patterns from the whitelist
  - PUT /proxy/[port]/blacklist - Set a URL to blacklist. Takes the following parameters:
   - regex - the blacklist regular expression
   - status - the HTTP status code to return for URLs that are blacklisted
@@ -76,7 +76,7 @@ Once that is done, a new proxy will be available on the port returned. All you h
   - Payload data should be json encoded username and password name/value pairs (ex: {"username": "myUsername", "password": "myPassword"}
  - PUT /proxy/[port]/wait - wait till all request are being made
   - quietPeriodInMs - Sets quiet period in milliseconds
-  - timeoutInMs - Sets timeout in milliseconds 
+  - timeoutInMs - Sets timeout in milliseconds
  - PUT /proxy/[port]/timeout - Handles different proxy timeouts. Takes the following parameters:
   - requestTimeout - request timeout in milliseconds. A timeout value of -1 is interpreted as infinite timeout. It equals -1 by default.
   - readTimeout - read timeout in milliseconds. Which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets). A timeout value of zero is interpreted as an infinite timeout. It equals 60000 by default
@@ -207,3 +207,23 @@ NodeJS Support
 --------------
 
 NodeJS bindings for browswermob-proxy are available [here](https://github.com/zzo/browsermob-node).  Built-in support for [Selenium](http://seleniumhq.org) or use [CapserJS-on-PhantomJS](http://casperjs.org) or anything else to drive traffic for HAR generation.
+
+
+DataSift Tweaks
+---------------
+
+We use BMP as a standalone proxy alongside our [Storyplayer](http://datasift.github.io/storyplayer/) test automation tool, and we've made a few tweaks to make the proxy easier to work with.
+
+All of our changes are advertised via the new /features API, and anything that affects backwards-compatibility has been switched off by default.  We use the /features API to help us warn users of Storyplayer if they need to upgrade their copy of browsermob-proxy - much more user-friendly than hitting a missing proxy endpoint partway through running a test!
+
+The full list of tweaks is:
+
+* POM file now builds browsermob-proxy-XXX-standalone.jar, which you can use to run browsermob-proxy from the command-line on any platform.
+* REST API: GET /features - returns a list of implemented extra features, and whether they are currently active or not
+* REST API: POST / DELETE /features/requestLogs - enable / disable logging more info about the requests received by the proxy's REST API (very handy for building REST clients for the proxy)
+* REST API: POST / DELETE /features/enhancedReplies - enable / disable JSON replies containing explicit 'error' or 'success' info
+* REST API: DELETE /proxy/:port/headers - drop the current set of injected headers
+* REST API: PUT /proxy/:port/headers - drop the current set of injected headers, and replace with a new set
+* REST API: GET /proxy/:port/header/:name - get the value of an injected header
+* REST API: DELETE /proxy/:port/header/:name - delete a single injected header
+* All REST API handlers are now wrapped in try/catch blocks to ensure the proxy reports any serious errors back to any clients

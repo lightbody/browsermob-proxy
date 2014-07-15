@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.sitebricks.SitebricksModule;
+import net.lightbody.bmp.proxy.bricks.ProxyFeatures;
 import net.lightbody.bmp.proxy.bricks.ProxyResource;
 import net.lightbody.bmp.proxy.guice.ConfigModule;
 import net.lightbody.bmp.proxy.guice.JettyModule;
@@ -37,6 +38,7 @@ public class Main {
         final Injector injector = Guice.createInjector(new ConfigModule(args), new JettyModule(), new SitebricksModule() {
             @Override
             protected void configureSitebricks() {
+                scan(ProxyFeatures.class.getPackage());
                 scan(ProxyResource.class.getPackage());
             }
         });
