@@ -51,12 +51,14 @@ Once that is done, a new proxy will be available on the port returned. All you h
   - captureBinaryContent - Boolean, capture binary content
  - PUT /proxy/[port]/har/pageRef - starts a new page on the existing HAR. Supports the following parameters:
   - pageRef - the string name of the first page ref that should be used in the HAR. Defaults to "Page N" where N is the next page number.
+ - DELETE /proxy/[port]/har/pageRef/[pageRef] - deletes existing pages identified by [pageRef]. [pageRef] can take a form of a comma separated list. The current page cannot be deleted.
  - DELETE /proxy/[port] - shuts down the proxy and closes the port
- - GET /proxy/[port]/har - returns the JSON/HAR content representing all the HTTP traffic passed through the proxy
+ - GET /proxy/[port]/har - returns the JSON/HAR content representing all the HTTP traffic passed through the proxy. Supports the following parameters:
+  - pageRef - a comma separated list of pageRefs to retrieve. If omitted all the pageRefs will be returned.
  - PUT /proxy/[port]/whitelist - Sets a list of URL patterns to whitelist. Takes the following parameters:
   - regex - a comma separated list of regular expressions
   - status - the HTTP status code to return for URLs that do not match the whitelist
- - DELETE /proxy/[port]/whitelist - Clears all URL patterns from the whitelist 
+ - DELETE /proxy/[port]/whitelist - Clears all URL patterns from the whitelist
  - PUT /proxy/[port]/blacklist - Set a URL to blacklist. Takes the following parameters:
   - regex - the blacklist regular expression
   - status - the HTTP status code to return for URLs that are blacklisted
@@ -76,7 +78,7 @@ Once that is done, a new proxy will be available on the port returned. All you h
   - Payload data should be json encoded username and password name/value pairs (ex: {"username": "myUsername", "password": "myPassword"}
  - PUT /proxy/[port]/wait - wait till all request are being made
   - quietPeriodInMs - Sets quiet period in milliseconds
-  - timeoutInMs - Sets timeout in milliseconds 
+  - timeoutInMs - Sets timeout in milliseconds
  - PUT /proxy/[port]/timeout - Handles different proxy timeouts. Takes the following parameters:
   - requestTimeout - request timeout in milliseconds. A timeout value of -1 is interpreted as infinite timeout. It equals -1 by default.
   - readTimeout - read timeout in milliseconds. Which is the timeout for waiting for data or, put differently, a maximum period inactivity between two consecutive data packets). A timeout value of zero is interpreted as an infinite timeout. It equals 60000 by default
@@ -101,6 +103,14 @@ Now when traffic goes through port 9091 it will be attached to a page reference 
 That will ensure no more HTTP requests get attached to the old pageRef (Foo) and start getting attached to the new pageRef (Bar). You can also get the HAR content at any time like so:
 
     [~]$ curl http://localhost:8080/proxy/9091/har
+
+If you are interested only in the page Bar, you could query
+
+    [~]$ curl http://localhost:8080/proxy/9091/har?pageRef=Bar
+
+Or even you could delete the page Foo:
+
+    [~]$ curl -X DELETE http://localhost:8080/proxy/9091/har/pageRef/Foo
 
 Sometimes you will want to route requests through an upstream proxy server. In this case specify your proxy server by adding the httpProxy parameter to your create proxy request:
 
