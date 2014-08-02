@@ -527,8 +527,8 @@ public class BrowserMobHttpClient {
         // clear out any connection-related information so that it's not stale from previous use of this thread.
         RequestInfo.clear(url, entry);
 
-        entry.setRequest(new HarRequest(method.getMethod(), url, method.getProtocolVersion().getProtocol()));
-        entry.setResponse(new HarResponse(-999, "NO RESPONSE", method.getProtocolVersion().getProtocol()));
+        entry.setRequest(new HarRequest(method.getMethod(), url, method.getProtocolVersion().toString()));
+        entry.setResponse(new HarResponse(-999, "NO RESPONSE", method.getProtocolVersion().toString()));
         if (this.har != null && harPageRef != null) {
             har.getLog().addEntry(entry);
         }
