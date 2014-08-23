@@ -1,6 +1,6 @@
 package net.lightbody.bmp.proxy;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import net.lightbody.bmp.core.har.*;
 import net.lightbody.bmp.core.util.ThreadUtils;
 import net.lightbody.bmp.proxy.http.BrowserMobHttpRequest;

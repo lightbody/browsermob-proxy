@@ -27,7 +27,8 @@ public class Main {
         configureLogging();
 
         String version = "UNKNOWN/DEVELOPMENT";
-        InputStream is = Main.class.getResourceAsStream("/META-INF/maven/net.lightbody.bmp/browsermob-proxy/pom.properties");
+        InputStream is = Main.class.getResourceAsStream("/version.prop");
+
         if (is != null) {
             Properties props = new Properties();
             props.load(is);
@@ -41,7 +42,7 @@ public class Main {
             }
         });
 
-        LOG.info("Starting BrowserMob Proxy version %s", version);
+        LOG.info("Starting BrowserMob Proxy version {}", version);
 
         Server server = injector.getInstance(Server.class);
         GuiceServletContextListener gscl = new GuiceServletContextListener() {

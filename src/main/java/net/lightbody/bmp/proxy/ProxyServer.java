@@ -23,6 +23,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -286,6 +287,14 @@ public class ProxyServer {
 
     public void blacklistRequests(String pattern, int responseCode) {
         client.blacklistRequests(pattern, responseCode);
+    }
+
+    public List<BlacklistEntry> getBlacklistedRequests() {
+        return client.getBlacklistedRequests();
+    }
+
+    public WhitelistEntry getWhitelistRequests() {
+        return client.getWhitelistRequests();
     }
     
     public void clearBlacklist() {

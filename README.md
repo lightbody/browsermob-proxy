@@ -53,10 +53,12 @@ Once that is done, a new proxy will be available on the port returned. All you h
   - pageRef - the string name of the first page ref that should be used in the HAR. Defaults to "Page N" where N is the next page number.
  - DELETE /proxy/[port] - shuts down the proxy and closes the port
  - GET /proxy/[port]/har - returns the JSON/HAR content representing all the HTTP traffic passed through the proxy
+ - GET /proxy/[port]/whitelist - Displays whitelisted items
  - PUT /proxy/[port]/whitelist - Sets a list of URL patterns to whitelist. Takes the following parameters:
   - regex - a comma separated list of regular expressions
   - status - the HTTP status code to return for URLs that do not match the whitelist
  - DELETE /proxy/[port]/whitelist - Clears all URL patterns from the whitelist 
+ - GET /proxy/[port]/blacklist - Displays blacklisted items
  - PUT /proxy/[port]/blacklist - Set a URL to blacklist. Takes the following parameters:
   - regex - the blacklist regular expression
   - status - the HTTP status code to return for URLs that are blacklisted
@@ -207,3 +209,11 @@ NodeJS Support
 --------------
 
 NodeJS bindings for browswermob-proxy are available [here](https://github.com/zzo/browsermob-node).  Built-in support for [Selenium](http://seleniumhq.org) or use [CapserJS-on-PhantomJS](http://casperjs.org) or anything else to drive traffic for HAR generation.
+
+Creating the batch files from source
+------------------------------------
+
+You'll need maven (`brew install maven` if you're on OS X); use the `release` profile to generate the batch files from this repository. Optionally, proceed at your own risk and append the `-DskipTests` option if the tests are failing.
+
+    [~]$ mvn -P release
+    [~]$ mvn -DskipTests -P release

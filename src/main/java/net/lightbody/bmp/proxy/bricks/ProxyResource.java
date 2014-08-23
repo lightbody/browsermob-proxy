@@ -126,6 +126,17 @@ public class ProxyResource {
         return Reply.saying().ok();
     }
 
+    @Get
+    @At("/:port/blacklist")
+    public Reply<?> getBlacklist(@Named("port") int port, Request request) {
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        return Reply.with(proxy.getBlacklistedRequests()).as(Json.class);
+    }
+
     @Put
     @At("/:port/blacklist")
     public Reply<?> blacklist(@Named("port") int port, Request request) {
@@ -149,8 +160,19 @@ public class ProxyResource {
             return Reply.saying().notFound();
         }
 
-    	proxy.clearBlacklist();
-    	return Reply.saying().ok();
+        proxy.clearBlacklist();
+        return Reply.saying().ok();
+    }
+
+    @Get
+    @At("/:port/whitelist")
+    public Reply<?> getWhitelist(@Named("port") int port, Request request) {
+        ProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        return Reply.with(proxy.getWhitelistRequests()).as(Json.class);
     }
 
     @Put
@@ -171,13 +193,13 @@ public class ProxyResource {
     @Delete
     @At("/:port/whitelist")
     public Reply<?> clearWhitelist(@Named("port") int port, Request request) {
-    	ProxyServer proxy = proxyManager.get(port);
+        ProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
             return Reply.saying().notFound();
         }
 
-    	proxy.clearWhitelist();
-    	return Reply.saying().ok();
+        proxy.clearWhitelist();
+        return Reply.saying().ok();
     }
 
     @Post
