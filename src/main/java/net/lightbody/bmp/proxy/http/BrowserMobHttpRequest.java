@@ -9,7 +9,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.lightbody.bmp.proxy.jetty.http.HttpRequest;
+import org.openqa.jetty.http.HttpRequest;
 import net.lightbody.bmp.proxy.util.Base64;
 import net.lightbody.bmp.proxy.util.ClonedInputStream;
 import net.lightbody.bmp.proxy.util.Log;

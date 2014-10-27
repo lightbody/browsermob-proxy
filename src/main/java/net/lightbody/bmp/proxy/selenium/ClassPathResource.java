@@ -1,6 +1,6 @@
 package net.lightbody.bmp.proxy.selenium;
 
-import net.lightbody.bmp.proxy.jetty.util.Resource;
+import org.openqa.jetty.util.Resource;
 import org.eclipse.jetty.util.IO;
 
 import java.io.*;

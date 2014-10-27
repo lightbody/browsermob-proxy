@@ -21,11 +21,11 @@ import net.lightbody.bmp.exception.NameResolutionException;
 import net.lightbody.bmp.proxy.http.BrowserMobHttpClient;
 import net.lightbody.bmp.proxy.http.RequestInterceptor;
 import net.lightbody.bmp.proxy.http.ResponseInterceptor;
-import net.lightbody.bmp.proxy.jetty.http.HttpContext;
-import net.lightbody.bmp.proxy.jetty.http.HttpListener;
-import net.lightbody.bmp.proxy.jetty.http.SocketListener;
-import net.lightbody.bmp.proxy.jetty.jetty.Server;
-import net.lightbody.bmp.proxy.jetty.util.InetAddrPort;
+import org.openqa.jetty.http.HttpContext;
+import org.openqa.jetty.http.HttpListener;
+import org.openqa.jetty.http.SocketListener;
+import org.openqa.jetty.jetty.Server;
+import org.openqa.jetty.util.InetAddrPort;
 import net.lightbody.bmp.proxy.util.Log;
 
 import org.apache.http.HttpRequestInterceptor;

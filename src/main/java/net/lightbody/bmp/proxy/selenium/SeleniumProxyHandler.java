@@ -1,11 +1,11 @@
 package net.lightbody.bmp.proxy.selenium;
 
-import net.lightbody.bmp.proxy.jetty.http.*;
-import net.lightbody.bmp.proxy.jetty.http.handler.AbstractHttpHandler;
-import net.lightbody.bmp.proxy.jetty.util.IO;
-import net.lightbody.bmp.proxy.jetty.util.InetAddrPort;
-import net.lightbody.bmp.proxy.jetty.util.StringMap;
-import net.lightbody.bmp.proxy.jetty.util.URI;
+import org.openqa.jetty.http.*;
+import org.openqa.jetty.http.handler.AbstractHttpHandler;
+import org.openqa.jetty.util.IO;
+import org.openqa.jetty.util.InetAddrPort;
+import org.openqa.jetty.util.StringMap;
+import org.openqa.jetty.util.URI;
 import net.lightbody.bmp.proxy.util.ResourceExtractor;
 import net.lightbody.bmp.proxy.util.TrustEverythingSSLTrustManager;
 

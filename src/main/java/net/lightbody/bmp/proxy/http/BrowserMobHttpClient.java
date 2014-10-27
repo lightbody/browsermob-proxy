@@ -445,7 +445,7 @@ public class BrowserMobHttpClient {
         return null;
     }
 
-    public BrowserMobHttpRequest newPost(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
+    public BrowserMobHttpRequest newPost(String url, org.openqa.jetty.http.HttpRequest proxyRequest) {
         try {
             URI uri = makeUri(url);
             return new BrowserMobHttpRequest(new HttpPost(uri), this, -1, captureContent, proxyRequest);
@@ -454,7 +454,7 @@ public class BrowserMobHttpClient {
         }
     }
 
-    public BrowserMobHttpRequest newGet(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
+    public BrowserMobHttpRequest newGet(String url, org.openqa.jetty.http.HttpRequest proxyRequest) {
         try {
             URI uri = makeUri(url);
             return new BrowserMobHttpRequest(new HttpGet(uri), this, -1, captureContent, proxyRequest);
@@ -472,7 +472,7 @@ public class BrowserMobHttpClient {
     	}
     }
 
-    public BrowserMobHttpRequest newPut(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
+    public BrowserMobHttpRequest newPut(String url, org.openqa.jetty.http.HttpRequest proxyRequest) {
         try {
             URI uri = makeUri(url);
             return new BrowserMobHttpRequest(new HttpPut(uri), this, -1, captureContent, proxyRequest);
@@ -481,7 +481,7 @@ public class BrowserMobHttpClient {
         }
     }
 
-    public BrowserMobHttpRequest newDelete(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
+    public BrowserMobHttpRequest newDelete(String url, org.openqa.jetty.http.HttpRequest proxyRequest) {
         try {
             URI uri = makeUri(url);
             return new BrowserMobHttpRequest(new HttpDeleteWithBody(uri), this, -1, captureContent, proxyRequest);
@@ -490,7 +490,7 @@ public class BrowserMobHttpClient {
         }
     }
 
-    public BrowserMobHttpRequest newOptions(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
+    public BrowserMobHttpRequest newOptions(String url, org.openqa.jetty.http.HttpRequest proxyRequest) {
         try {
             URI uri = makeUri(url);
             return new BrowserMobHttpRequest(new HttpOptions(uri), this, -1, captureContent, proxyRequest);
@@ -499,7 +499,7 @@ public class BrowserMobHttpClient {
         }
     }
 
-    public BrowserMobHttpRequest newHead(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
+    public BrowserMobHttpRequest newHead(String url, org.openqa.jetty.http.HttpRequest proxyRequest) {
         try {
             URI uri = makeUri(url);
             return new BrowserMobHttpRequest(new HttpHead(uri), this, -1, captureContent, proxyRequest);

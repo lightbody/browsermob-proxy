@@ -261,6 +261,12 @@
             <artifactId>selenium-api</artifactId>
             <version>${selenium.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-server</artifactId>
+            <version>2.39.0</version>
+        </dependency>
 
        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -268,7 +274,7 @@
             <version>${selenium.version}</version>
             <scope>test</scope>
        </dependency>
- 
+       
         <dependency>
             <groupId>com.github.detro.ghostdriver</groupId>
             <artifactId>phantomjsdriver</artifactId>

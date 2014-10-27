@@ -89,7 +89,7 @@
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
   <servlet>
     <servlet-name>default</servlet-name>
-    <servlet-class>net.lightbody.bmp.proxy.jetty.jetty.servlet.Default</servlet-class>
+    <servlet-class>org.openqa.jetty.jetty.servlet.Default</servlet-class>
     <init-param>
       <param-name>acceptRanges</param-name>
       <param-value>true</param-value>

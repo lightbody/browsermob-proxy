@@ -1,6 +1,6 @@
 package net.lightbody.bmp.proxy.selenium;
 
-import net.lightbody.bmp.proxy.jetty.log.LogFactory;
+import org.openqa.jetty.log.LogFactory;
 import org.apache.commons.logging.Log;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 

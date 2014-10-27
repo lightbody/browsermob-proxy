@@ -1,10 +1,10 @@
 package net.lightbody.bmp.proxy;
 
 import net.lightbody.bmp.proxy.http.*;
-import net.lightbody.bmp.proxy.jetty.http.*;
-import net.lightbody.bmp.proxy.jetty.jetty.Server;
-import net.lightbody.bmp.proxy.jetty.util.InetAddrPort;
-import net.lightbody.bmp.proxy.jetty.util.URI;
+import org.openqa.jetty.http.*;
+import org.openqa.jetty.jetty.Server;
+import org.openqa.jetty.util.InetAddrPort;
+import org.openqa.jetty.util.URI;
 import net.lightbody.bmp.proxy.selenium.SeleniumProxyHandler;
 import net.lightbody.bmp.proxy.util.Log;
 import org.apache.http.Header;
