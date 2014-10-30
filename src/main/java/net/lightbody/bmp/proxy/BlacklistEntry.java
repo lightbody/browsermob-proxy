@@ -6,10 +6,12 @@ public class BlacklistEntry
 {
     private Pattern pattern;
     private int responseCode;
+	private Pattern method;
 
-    public BlacklistEntry(String pattern, int responseCode) {
+    public BlacklistEntry(String pattern, int responseCode, String method) {
         this.pattern = Pattern.compile(pattern);
         this.responseCode = responseCode;
+		this.method = Pattern.compile("".equals(method) ? ".*" : method);
     }
 
     public Pattern getPattern() {
@@ -19,4 +21,8 @@ public class BlacklistEntry
     public int getResponseCode() {
         return this.responseCode;
     }
+	
+	public Pattern getMethod() {
+		return this.method;
+	}
 }

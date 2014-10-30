@@ -676,7 +676,8 @@ public class BrowserMobHttpClient {
 
         if (blacklistEntries != null) {
             for (BlacklistEntry blacklistEntry : blacklistEntries) {
-                if (blacklistEntry.getPattern().matcher(url).matches()) {
+                if (blacklistEntry.getPattern().matcher(url).matches()
+					&& blacklistEntry.getMethod().matcher(method.getMethod()).matches()) {
                     mockResponseCode = blacklistEntry.getResponseCode();
                     break;
                 }
@@ -1196,12 +1197,12 @@ public class BrowserMobHttpClient {
 
     // this method is provided for backwards compatibility before we renamed it to
     // blacklistRequests (note the plural)
-    public void blacklistRequest(String pattern, int responseCode) {
-        blacklistRequests(pattern, responseCode);
+    public void blacklistRequest(String pattern, int responseCode, String method) {
+        blacklistRequests(pattern, responseCode, method);
     }
 
-    public void blacklistRequests(String pattern, int responseCode) {
-        blacklistEntries.add(new BlacklistEntry(pattern, responseCode));
+    public void blacklistRequests(String pattern, int responseCode, String method) {
+        blacklistEntries.add(new BlacklistEntry(pattern, responseCode, method));
     }
 
     public List<BlacklistEntry> getBlacklistedRequests() {

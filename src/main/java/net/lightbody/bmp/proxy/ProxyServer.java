@@ -333,8 +333,8 @@ public class ProxyServer {
     	client.clearRewriteRules();
     }
 
-    public void blacklistRequests(String pattern, int responseCode) {
-        client.blacklistRequests(pattern, responseCode);
+    public void blacklistRequests(String pattern, int responseCode, String method) {
+        client.blacklistRequests(pattern, responseCode, method);
     }
 
     public List<BlacklistEntry> getBlacklistedRequests() {

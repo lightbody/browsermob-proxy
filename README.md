@@ -62,6 +62,7 @@ Once that is done, a new proxy will be available on the port returned. All you h
  - PUT /proxy/[port]/blacklist - Set a URL to blacklist. Takes the following parameters:
   - regex - the blacklist regular expression
   - status - the HTTP status code to return for URLs that are blacklisted
+  - method - regular expression for matching method., e.g., POST. Emtpy for matching all method.
  - DELETE /proxy/[port]/blacklist - Clears all URL patterns from the blacklist
  - PUT /proxy/[port]/limit - Limit the bandwidth through the proxy. Takes the following parameters:
   - downstreamKbps - Sets the downstream kbps
