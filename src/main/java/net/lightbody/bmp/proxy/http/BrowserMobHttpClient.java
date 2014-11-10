@@ -1430,4 +1430,8 @@ public class BrowserMobHttpClient {
 
         return bytesCopied;
     }
+    
+    public DefaultHttpClient getHttpClient() {
+		return httpClient;
+	}
 }
