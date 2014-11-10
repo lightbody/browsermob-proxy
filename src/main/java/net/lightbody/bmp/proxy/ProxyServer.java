@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
 import net.lightbody.bmp.core.har.HarLog;
@@ -26,7 +25,6 @@ import net.lightbody.bmp.proxy.jetty.http.HttpListener;
 import net.lightbody.bmp.proxy.jetty.http.SocketListener;
 import net.lightbody.bmp.proxy.jetty.jetty.Server;
 import net.lightbody.bmp.proxy.jetty.util.InetAddrPort;
-
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.java_bandwidthlimiter.BandwidthLimiter;
@@ -333,6 +331,10 @@ public class ProxyServer {
     	client.clearRewriteRules();
     }
 
+    public void blacklistRequests(String pattern, int responseCode) {
+        client.blacklistRequests(pattern, responseCode, null);
+    }
+    
     public void blacklistRequests(String pattern, int responseCode, String method) {
         client.blacklistRequests(pattern, responseCode, method);
     }
