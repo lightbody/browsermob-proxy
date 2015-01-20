@@ -29,7 +29,7 @@ public class ExpirableMap<K,V> extends ConcurrentHashMap<K,V>{
     public ExpirableMap(int ttl, int checkInterval, OnExpire<V> onExpire) {
         this.ttl = ttl*1000;
         this.onExpire = onExpire;
-        expires = new HashMap<>();        
+        expires = new HashMap<K, Long>();        
         scheduler.scheduleWithFixedDelay(new Worker(), checkInterval, checkInterval, TimeUnit.SECONDS);
     }
     
@@ -67,7 +67,7 @@ public class ExpirableMap<K,V> extends ConcurrentHashMap<K,V>{
         public void run() {
             Map<K, Long> m;
             synchronized(ExpirableMap.this){
-                m = new HashMap<>(expires);
+                m = new HashMap<K, Long>(expires);
             }
             Long now = new Date().getTime();
             for(Entry<K, Long> e : m.entrySet()){

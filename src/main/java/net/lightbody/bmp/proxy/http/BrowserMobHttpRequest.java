@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,7 +124,7 @@ public class BrowserMobHttpRequest {
             if (!nvps.isEmpty()) {
                 try {
                     if (!multiPart) {
-                        enclodingRequest.setEntity(new UrlEncodedFormEntity(nvps, StandardCharsets.UTF_8));
+                        enclodingRequest.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
                     } else {
                         for (NameValuePair nvp : nvps) {
                             multipartEntity.addPart(nvp.getName(), new StringBody(nvp.getValue()));

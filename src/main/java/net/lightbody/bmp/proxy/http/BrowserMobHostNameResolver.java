@@ -91,7 +91,7 @@ public class BrowserMobHostNameResolver implements DnsResolver {
         	}
         } else {
         	// found records using the non-native lookup mechanism
-        	addrList = new ArrayList<>(records.length);
+        	addrList = new ArrayList<InetAddress>(records.length);
         	 
         	for(Record record : records){
     	        // assembly the addr object

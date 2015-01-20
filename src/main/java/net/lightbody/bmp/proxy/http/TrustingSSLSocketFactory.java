@@ -47,7 +47,11 @@ public class TrustingSSLSocketFactory extends SSLConnectionSocketFactory {
 			).build();
 			
 			sslContext.init(null, new TrustManager[]{new TrustEverythingSSLTrustManager()}, null);
-		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
+		} catch (KeyManagementException e) {
+			throw new RuntimeException("Unexpected key management error", e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("Unexpected key management error", e);
+		} catch (KeyStoreException e) {
 			throw new RuntimeException("Unexpected key management error", e);
 		}
     }

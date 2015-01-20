@@ -2,21 +2,23 @@ package net.lightbody.bmp.proxy;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import net.lightbody.bmp.proxy.util.ExpirableMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
 
 public class ExpirableMapTest {    
-    private Set<String> strings = new HashSet<>();
+    private Set<String> strings = new HashSet<String>();
     private ExpirableMap<Integer, String> m;
     
     @Before
     public void setUp() throws Exception {
-        m = new ExpirableMap<>(1, 1, new ExpirableMap.OnExpire<String>(){
+        m = new ExpirableMap<Integer, String>(1, 1, new ExpirableMap.OnExpire<String>(){
             @Override
             public void run(String s) {
                 ExpirableMapTest.this.strings.add(s);

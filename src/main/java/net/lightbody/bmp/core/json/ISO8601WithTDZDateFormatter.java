@@ -17,6 +17,7 @@ import java.util.Date;
  * @see https://github.com/lightbody/browsermob-proxy/issues/44
  *
  */
+
 public class ISO8601WithTDZDateFormatter extends JsonSerializer<Date> {
     @Override
     public void serialize(java.util.Date value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonGenerationException {
