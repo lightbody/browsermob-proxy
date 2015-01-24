@@ -59,6 +59,7 @@ public class ProxyServer {
     private BrowserMobProxyHandler handler;
     private AtomicInteger pageCount = new AtomicInteger(1);
     private AtomicInteger requestCounter = new AtomicInteger(0);
+    private String httpProxy;
 
     public ProxyServer() {
     }
@@ -87,6 +88,9 @@ public class ProxyServer {
         handler.setJettyServer(server);
         handler.setShutdownLock(new Object());
         client = new BrowserMobHttpClient(streamManager, requestCounter);
+        if( httpProxy != null) {
+        	client.setHttpProxy(httpProxy);
+        }
         client.prepareForBrowser();
         handler.setHttpClient(client);
 
@@ -463,7 +467,7 @@ public class ProxyServer {
 
     public void setOptions(Map<String, String> options) {
         if (options.containsKey("httpProxy")) {
-            client.setHttpProxy(options.get("httpProxy"));
+        	httpProxy = options.get("httpProxy");
         }
     }
 }

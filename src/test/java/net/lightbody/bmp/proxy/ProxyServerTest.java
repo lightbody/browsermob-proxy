@@ -1,8 +1,10 @@
 package net.lightbody.bmp.proxy;
 
 import net.lightbody.bmp.proxy.util.TestSSLSocketFactory;
+
 import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.PlainSocketFactory;
@@ -17,8 +19,11 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.security.KeyStore;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class ProxyServerTest {
     static {
@@ -61,6 +66,25 @@ public abstract class ProxyServerTest {
             throw new RuntimeException("Unable to get HTTP client", e);
         }
     }
+
+	@Test
+	public void testHttpProxyOption() throws Exception {
+		ProxyServer instance = new ProxyServer(8082);
+		Map<String, String> options = new HashMap<String, String>();
+		options.put("httpProxy", "localhost:8080");
+		instance.setOptions(options);
+		instance.start();
+		try {
+			DefaultHttpClient client = getNewHttpClient(8082);
+			try {
+				client.execute(new HttpGet("https://www.google.com"));
+			} finally {
+				client.close();
+			}
+		} finally {
+			instance.stop();
+		}
+	}
 
     @After
     public void stopServer() throws Exception {
