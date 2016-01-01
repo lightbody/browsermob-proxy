@@ -545,7 +545,12 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
                 harCookie.setHttpOnly(cookie.isHttpOnly());
                 harCookie.setPath(cookie.getPath());
                 harCookie.setSecure(cookie.isSecure());
-                harCookie.setExpires(new Date(System.currentTimeMillis() + cookie.getMaxAge()));
+                Date expires = null;
+                Long maxAge = cookie.getMaxAge();
+                if (maxAge > 0) {
+                    expires = new Date(System.currentTimeMillis() + maxAge);
+                }
+                harCookie.setExpires(expires);
 
                 harEntry.getResponse().getCookies().add(harCookie);
             }
