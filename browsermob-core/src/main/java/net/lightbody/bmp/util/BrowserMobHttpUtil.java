@@ -14,13 +14,16 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 
@@ -251,7 +254,7 @@ public class BrowserMobHttpUtil {
         // if this request's URI contains a full URI (including scheme, host, etc.), strip away the non-path components
         if (startsWithHttpOrHttps(httpRequest.getUri())) {
             try {
-                return getPathFromUri(httpRequest.getUri());
+                return getPathWithParamsFromUri(httpRequest.getUri());
             } catch (URISyntaxException e) {
                 // could not parse the URI, so fall through and return the URI as-is
             }
@@ -290,12 +293,14 @@ public class BrowserMobHttpUtil {
      * @return the path from the URI
      * @throws URISyntaxException if the specified URI is invalid or cannot be parsed
      */
-    public static String getPathFromUri(String uriString) throws URISyntaxException {
+    public static String getPathWithParamsFromUri(String uriString) throws URISyntaxException {
         URI uri = new URI(uriString);
-        if (uri.getQuery() != null) {
-            return uri.getPath() + '?' + uri.getQuery();
+        final String path = uri.getRawPath();
+        final String query = uri.getRawQuery();
+        if (query != null) {
+            return path + "?" + query;
         } else {
-            return uri.getPath();
+            return path;
         }
     }
 
