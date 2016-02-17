@@ -68,7 +68,7 @@ public class RewriteUrlFilter extends HttpsAwareFiltersAdapter {
                     httpRequest.setUri(rewrittenUrl);
                 } else {
                     try {
-                        String resource = BrowserMobHttpUtil.getPathFromUri(rewrittenUrl);
+                        String resource = BrowserMobHttpUtil.getPathWithParamsFromUri(rewrittenUrl);
                         httpRequest.setUri(resource);
                     } catch (URISyntaxException e) {
                         // the rewritten URL couldn't be parsed, possibly due to the rewrite rule mangling the URL. log
