@@ -14,8 +14,10 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -252,7 +254,7 @@ public class BrowserMobHttpUtil {
         if (startsWithHttpOrHttps(httpRequest.getUri())) {
             try {
                 return getRawPathAndParamsFromUri(httpRequest.getUri());
-            } catch (URISyntaxException e) {
+            } catch (MalformedURLException e) {
                 // could not parse the URI, so fall through and return the URI as-is
             }
         }
@@ -289,12 +291,12 @@ public class BrowserMobHttpUtil {
      *
      * @param uriString the URI to parse, containing a scheme, host, port, path, and query parameters
      * @return the unescaped path and query parameters from the URI
-     * @throws URISyntaxException if the specified URI is invalid or cannot be parsed
+     * @throws MalformedURLException if the specified URI is invalid or cannot be parsed
      */
-    public static String getRawPathAndParamsFromUri(String uriString) throws URISyntaxException {
-        URI uri = new URI(uriString);
-        String path = uri.getRawPath();
-        String query = uri.getRawQuery();
+    public static String getRawPathAndParamsFromUri(String uriString) throws MalformedURLException {
+        URL uri = new URL(uriString);
+        String path = uri.getPath();
+        String query = uri.getQuery();
 
         if (query != null) {
             return path + '?' + query;
