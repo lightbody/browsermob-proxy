@@ -78,7 +78,7 @@ public class HttpInputStream extends FilterInputStream
     
     /* ------------------------------------------------------------ */
     /**
-     * @param expectContinues The expectContinues to set.
+     * @return  expectContinues The expectContinues to set.
      */
     public OutputStream getExpectContinues()
     {

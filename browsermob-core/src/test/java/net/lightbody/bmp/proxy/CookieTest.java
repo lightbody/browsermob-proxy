@@ -8,7 +8,6 @@ import net.lightbody.bmp.proxy.util.IOUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;

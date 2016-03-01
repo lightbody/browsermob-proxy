@@ -2,7 +2,6 @@ package net.lightbody.bmp.proxy;
 
 import com.google.common.collect.ImmutableList;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;

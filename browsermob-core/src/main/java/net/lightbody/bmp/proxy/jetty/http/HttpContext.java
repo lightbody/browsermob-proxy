@@ -872,8 +872,6 @@ public class HttpContext extends Container
     /** Add elements to the class path for the context from the jar and zip files found
      *  in the specified resource.
      * @param lib the resource that contains the jar and/or zip files.
-     * @param append true if the classpath entries are to be appended to any
-     * existing classpath, or false if they replace the existing classpath.
      * @see #setClassPath(String)
      */
     public void addClassPaths(Resource lib)
