@@ -11,6 +11,7 @@ import org.littleshoot.proxy.impl.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
@@ -70,7 +71,7 @@ public class RewriteUrlFilter extends HttpsAwareFiltersAdapter {
                     try {
                         String resource = BrowserMobHttpUtil.getRawPathAndParamsFromUri(rewrittenUrl);
                         httpRequest.setUri(resource);
-                    } catch (URISyntaxException e) {
+                    } catch (MalformedURLException e) {
                         // the rewritten URL couldn't be parsed, possibly due to the rewrite rule mangling the URL. log
                         // a warning message and replace the resource on the request with the full, rewritten URL.
                         log.warn("Unable to determine path from rewritten URL. Request URL will be set to the full rewritten URL instead of the resource's path.\n\tOriginal URL: {}\n\tRewritten URL: {}",
