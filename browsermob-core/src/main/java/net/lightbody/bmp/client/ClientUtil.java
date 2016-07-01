@@ -71,6 +71,19 @@ public class ClientUtil {
     }
 
     /**
+     * Creates a Selenium Proxy object from the BrowserMobProxy instance. The BrowserMobProxy must be started. Retrieves the address
+     * of the Proxy using {@link #getConnectableAddress()}.
+     *
+     * @param browserMobProxy started BrowserMobProxy instance to read connection information from
+     * @param useDNS uses the hostname in the proxy definition instead of the IP address
+     * @return a Selenium Proxy instance, configured to use the BrowserMobProxy instance as its proxy server
+     * @throws java.lang.IllegalStateException if the proxy has not been started.
+     */
+    public static org.openqa.selenium.Proxy createSeleniumProxy(BrowserMobProxy browserMobProxy, Boolean useDNS) {
+        return createSeleniumProxy(browserMobProxy, getConnectableAddress(), useDNS);
+    }
+
+    /**
      * Creates a Selenium Proxy object from the BrowserMobProxy instance, using the specified connectableAddress as the Selenium Proxy object's
      * proxy address. Determines the port using {@link net.lightbody.bmp.BrowserMobProxy#getPort()}. The BrowserMobProxy must be started.
      *
@@ -81,6 +94,20 @@ public class ClientUtil {
      */
     public static org.openqa.selenium.Proxy createSeleniumProxy(BrowserMobProxy browserMobProxy, InetAddress connectableAddress) {
         return createSeleniumProxy(new InetSocketAddress(connectableAddress, browserMobProxy.getPort()));
+    }
+
+    /**
+     * Creates a Selenium Proxy object from the BrowserMobProxy instance, using the specified connectableAddress as the Selenium Proxy object's
+     * proxy address. Determines the port using {@link net.lightbody.bmp.BrowserMobProxy#getPort()}. The BrowserMobProxy must be started.
+     *
+     * @param browserMobProxy started BrowserMobProxy instance to read the port from
+     * @param connectableAddress the network address the Selenium Proxy will use to reach this BrowserMobProxy instance
+     * @param useDNS uses the hostname in the proxy definition instead of the IP address
+     * @return a Selenium Proxy instance, configured to use the BrowserMobProxy instance as its proxy server
+     * @throws java.lang.IllegalStateException if the proxy has not been started.
+     */
+    public static org.openqa.selenium.Proxy createSeleniumProxy(BrowserMobProxy browserMobProxy, InetAddress connectableAddress, Boolean useDNS) {
+        return createSeleniumProxy(new InetSocketAddress(connectableAddress, browserMobProxy.getPort()), useDNS);
     }
 
     /**
@@ -95,6 +122,30 @@ public class ClientUtil {
         proxy.setProxyType(Proxy.ProxyType.MANUAL);
 
         String proxyStr = String.format("%s:%d", connectableAddressAndPort.getHostString(), connectableAddressAndPort.getPort());
+        proxy.setHttpProxy(proxyStr);
+        proxy.setSslProxy(proxyStr);
+
+        return proxy;
+    }
+
+    /**
+     * Creates a Selenium Proxy object using the specified connectableAddressAndPort as the HTTP proxy server.
+     *
+     * @param connectableAddressAndPort the network address (or hostname) and port the Selenium Proxy will use to reach its
+     *                                  proxy server (the InetSocketAddress may be unresolved).
+     * @param useDNS uses the hostname in the proxy definition instead of the IP address
+     * @return a Selenium Proxy instance, configured to use the specified address and port as its proxy server
+     */
+    public static org.openqa.selenium.Proxy createSeleniumProxy(InetSocketAddress connectableAddressAndPort, Boolean useDNS) {
+        Proxy proxy = new Proxy();
+        proxy.setProxyType(Proxy.ProxyType.MANUAL);
+
+        String proxyStr;
+
+        if(useDNS)
+            proxyStr = String.format("%s:%d", connectableAddressAndPort.getHostString(), connectableAddressAndPort.getPort());
+        else
+            proxyStr = String.format("%s:%d", connectableAddressAndPort.getAddress(), connectableAddressAndPort.getPort());
         proxy.setHttpProxy(proxyStr);
         proxy.setSslProxy(proxyStr);
 
