@@ -478,28 +478,6 @@ public class ProxyResource {
             } catch (NumberFormatException e) {
             }
         }
-        String payloadPercentage = request.param("payloadPercentage");
-        if (payloadPercentage != null) {
-            try {
-                streamManager.setPayloadPercentage(Integer.parseInt(payloadPercentage));
-            } catch (NumberFormatException e) {
-            }
-        }
-        String maxBitsPerSecond = request.param("maxBitsPerSecond");
-        if (maxBitsPerSecond != null) {
-            try {
-                streamManager.setMaxBitsPerSecondThreshold(Integer.parseInt(maxBitsPerSecond));
-            } catch (NumberFormatException e) {
-            }
-        }
-        String enable = request.param("enable");
-        if (enable != null) {
-            if (Boolean.parseBoolean(enable)) {
-                streamManager.enable();
-            } else {
-                streamManager.disable();
-            }
-        }
         return Reply.saying().ok();
     }
 
