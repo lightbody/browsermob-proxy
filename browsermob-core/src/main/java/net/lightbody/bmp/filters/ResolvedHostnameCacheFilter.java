@@ -1,5 +1,6 @@
 package net.lightbody.bmp.filters;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.net.HostAndPort;
 import io.netty.channel.ChannelHandlerContext;
@@ -8,7 +9,6 @@ import org.littleshoot.proxy.HttpFiltersAdapter;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,7 +22,7 @@ public class ResolvedHostnameCacheFilter extends HttpFiltersAdapter {
      * har. Unfortunately there is not currently any way to determine the remote IP address of a keep-alive connection in a filter, so caching the
      * resolved hostnames gives a generally-reasonable best guess.
      */
-    private static final int RESOLVED_ADDRESSES_EVICTION_SECONDS = 300;
+    private static final int RESOLVED_ADDRESSES_EVICTION_SECONDS = 600;
 
     /**
      * Concurrency of the resolvedAddresses map. Should be approximately equal to the maximum number of simultaneous connection
@@ -35,12 +35,11 @@ public class ResolvedHostnameCacheFilter extends HttpFiltersAdapter {
      * The expiration time is renewed after each access, rather than after each write, so if the connection is consistently kept alive and used,
      * the cached IP address will not be evicted.
      */
-    private static final ConcurrentMap<String, String> resolvedAddresses =
+    private static final Cache<String, String> resolvedAddresses =
             CacheBuilder.newBuilder()
                     .expireAfterAccess(RESOLVED_ADDRESSES_EVICTION_SECONDS, TimeUnit.SECONDS)
                     .concurrencyLevel(RESOLVED_ADDRESSES_CONCURRENCY_LEVEL)
-                    .<String, String>build()
-                    .asMap();
+                    .build();
 
     public ResolvedHostnameCacheFilter(HttpRequest originalRequest, ChannelHandlerContext ctx) {
         super(originalRequest, ctx);
@@ -69,6 +68,6 @@ public class ResolvedHostnameCacheFilter extends HttpFiltersAdapter {
      * @return the resolved IP address for the host, or null if the resolved address is not in the cache
      */
     public static String getPreviouslyResolvedAddressForHost(String host) {
-        return resolvedAddresses.get(host);
+        return resolvedAddresses.getIfPresent(host);
     }
 }

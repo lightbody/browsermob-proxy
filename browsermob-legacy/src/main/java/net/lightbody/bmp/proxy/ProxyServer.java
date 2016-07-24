@@ -465,12 +465,22 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
     @Override
     public void setReadBandwidthLimit(long bytesPerSecond) {
-        getStreamManager().setDownstreamKbps(bytesPerSecond / 1024);
+        getStreamManager().setDownstreamKbps(bytesPerSecond / 1024L);
+    }
+
+    @Override
+    public long getReadBandwidthLimit() {
+        return getStreamManager().getMaxDownstreamKB() * 1024L;
     }
 
     @Override
     public void setWriteBandwidthLimit(long bytesPerSecond) {
-        getStreamManager().setUpstreamKbps(bytesPerSecond / 1024);
+        getStreamManager().setUpstreamKbps(bytesPerSecond / 1024L);
+    }
+
+    @Override
+    public long getWriteBandwidthLimit() {
+        return getStreamManager().getMaxUpstreamKB() * 1024L;
     }
 
     @Override

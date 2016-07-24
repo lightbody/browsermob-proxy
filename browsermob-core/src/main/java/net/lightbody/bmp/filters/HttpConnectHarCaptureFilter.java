@@ -352,7 +352,10 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
                 if (resolvedAddress != null) {
                     harEntry.setServerIPAddress(resolvedAddress);
                 } else {
-                    log.warn("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
+                    // the resolvedAddress may be null if the ResolvedHostnameCacheFilter has expired the entry (which is unlikely),
+                    // or in the far more common case that the proxy is using a chained proxy to connect to connect to the
+                    // remote host. since the chained proxy handles IP address resolution, the IP address in the HAR must be blank.
+                    log.trace("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
                 }
             } else {
                 log.warn("Unable to identify host from request uri: {}", modifiedHttpRequest.getUri());

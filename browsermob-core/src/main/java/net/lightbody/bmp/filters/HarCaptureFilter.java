@@ -3,8 +3,6 @@ package net.lightbody.bmp.filters;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
@@ -12,6 +10,9 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarCookie;
 import net.lightbody.bmp.core.har.HarEntry;
@@ -25,8 +26,8 @@ import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.proxy.CaptureType;
-import net.lightbody.bmp.util.BrowserMobProxyUtil;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
+import net.lightbody.bmp.util.BrowserMobProxyUtil;
 import net.sf.uadetector.ReadableUserAgent;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -369,13 +371,13 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             return;
         }
 
-        Set<Cookie> cookies = CookieDecoder.decode(cookieHeader);
+        Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieHeader);
 
         for (Cookie cookie : cookies) {
             HarCookie harCookie = new HarCookie();
 
-            harCookie.setName(cookie.getName());
-            harCookie.setValue(cookie.getValue());
+            harCookie.setName(cookie.name());
+            harCookie.setValue(cookie.value());
 
             harEntry.getRequest().getCookies().add(harCookie);
         }
@@ -536,25 +538,34 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         }
 
         for (String setCookieHeader : setCookieHeaders) {
-            Set<Cookie> cookies = CookieDecoder.decode(setCookieHeader);
-            // really there should only be one cookie per Set-Cookie header
-            for (Cookie cookie : cookies) {
-                HarCookie harCookie = new HarCookie();
-
-                harCookie.setName(cookie.getName());
-                harCookie.setValue(cookie.getValue());
-                harCookie.setComment(cookie.getComment());
-                harCookie.setDomain(cookie.getDomain());
-                harCookie.setHttpOnly(cookie.isHttpOnly());
-                harCookie.setPath(cookie.getPath());
-                harCookie.setSecure(cookie.isSecure());
-                if (cookie.maxAge() > 0) {
-                    // cookie.maxAge() returns the max age of the cookie in seconds; java.util.Date requires milliseconds
-                    harCookie.setExpires(new Date(System.currentTimeMillis() + cookie.maxAge() / 1000L));
-                }
-
-                harEntry.getResponse().getCookies().add(harCookie);
+            Cookie cookie = ClientCookieDecoder.LAX.decode(setCookieHeader);
+            if (cookie == null) {
+                return;
             }
+
+            HarCookie harCookie = new HarCookie();
+
+            harCookie.setName(cookie.name());
+            harCookie.setValue(cookie.value());
+            // comment is no longer supported in the netty ClientCookieDecoder
+            harCookie.setDomain(cookie.domain());
+            harCookie.setHttpOnly(cookie.isHttpOnly());
+            harCookie.setPath(cookie.path());
+            harCookie.setSecure(cookie.isSecure());
+            if (cookie.maxAge() > 0) {
+                // use a Calendar with the current timestamp + maxAge seconds. the locale of the calendar is irrelevant,
+                // since we are dealing with timestamps.
+                Calendar expires = Calendar.getInstance();
+                // zero out the milliseconds, since maxAge is in seconds
+                expires.set(Calendar.MILLISECOND, 0);
+                // we can't use Calendar.add, since that only takes ints. TimeUnit.convert handles second->millisecond
+                // overflow reasonably well by returning the result as Long.MAX_VALUE.
+                expires.setTimeInMillis(expires.getTimeInMillis() + TimeUnit.MILLISECONDS.convert(cookie.maxAge(), TimeUnit.SECONDS));
+
+                harCookie.setExpires(expires.getTime());
+            }
+
+            harEntry.getResponse().getCookies().add(harCookie);
         }
     }
 
@@ -630,7 +641,10 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             if (resolvedAddress != null) {
                 harEntry.setServerIPAddress(resolvedAddress);
             } else {
-                log.warn("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
+                // the resolvedAddress may be null if the ResolvedHostnameCacheFilter has expired the entry (which is unlikely),
+                // or in the far more common case that the proxy is using a chained proxy to connect to connect to the
+                // remote host. since the chained proxy handles IP address resolution, the IP address in the HAR must be blank.
+                log.trace("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
             }
         } else {
             log.warn("Unable to identify host from request uri: {}", httpRequest.getUri());

@@ -238,11 +238,21 @@ public interface BrowserMobProxy {
     void setReadBandwidthLimit(long bytesPerSecond);
 
     /**
+     * Returns the current bandwidth limit for reading, in bytes per second.
+     */
+    long getReadBandwidthLimit();
+
+    /**
      * Sets the maximum bandwidth to consume when sending requests to servers.
      *
      * @param bytesPerSecond maximum bandwidth, in bytes per second
      */
     void setWriteBandwidthLimit(long bytesPerSecond);
+
+    /**
+     * Returns the current bandwidth limit for writing, in bytes per second.
+     */
+    long getWriteBandwidthLimit();
 
     /**
      * The minimum amount of time that will elapse between the time the proxy begins receiving a response from the server and the time the
@@ -329,7 +339,7 @@ public interface BrowserMobProxy {
      * <p/>
      * For example, the following rewrite rule:
      *
-     * <pre>   {@code proxy.rewriteUrl("http://www\.(yahoo|bing)\.com\?(\w+)=(\w+)", "http://www.google.com?originalDomain=$1&$2=$3");}</pre>
+     * <pre>   {@code proxy.rewriteUrl("http://www\\.(yahoo|bing)\\.com/\\?(\\w+)=(\\w+)", "http://www.google.com/?originalDomain=$1&$2=$3");}</pre>
      *
      * will match an HTTP request (but <i>not</i> HTTPS!) to www.yahoo.com or www.bing.com with exactly 1 query parameter,
      * and replace it with a call to www.google.com with an 'originalDomain' query parameter, as well as the original query parameter.

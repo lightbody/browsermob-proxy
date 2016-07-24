@@ -19,6 +19,7 @@ import net.lightbody.bmp.exception.ProxyExistsException;
 import net.lightbody.bmp.exception.ProxyPortsExhaustedException;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import net.lightbody.bmp.filters.JavascriptRequestResponseFilter;
+import net.lightbody.bmp.proxy.CaptureType;
 import net.lightbody.bmp.proxy.LegacyProxyServer;
 import net.lightbody.bmp.proxy.ProxyManager;
 import net.lightbody.bmp.proxy.ProxyServer;
@@ -149,6 +150,12 @@ public class ProxyResource {
         proxy.setCaptureHeaders(Boolean.parseBoolean(captureHeaders));
         proxy.setCaptureContent(Boolean.parseBoolean(captureContent));
         proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
+
+        String captureCookies = request.param("captureCookies");
+        if (proxy instanceof BrowserMobProxyServer && Boolean.parseBoolean(captureCookies)) {
+            BrowserMobProxyServer browserMobProxyServer = (BrowserMobProxyServer) proxy;
+            browserMobProxyServer.enableHarCaptureTypes(CaptureType.getCookieCaptureTypes());
+        }
 
         if (oldHar != null) {
             return Reply.with(oldHar).as(Json.class);

@@ -14,3 +14,9 @@ atlassian-ide-plugin.xml
 dependency-reduced-pom.xml
 littleproxy_cert
 littleproxy_keystore.jks
+
+# mockserver-related files
+ClientCertificate.pem
+ClientPrivateKey.pem
+ClientPublicKey.pem
+mockserver_keystore.jks

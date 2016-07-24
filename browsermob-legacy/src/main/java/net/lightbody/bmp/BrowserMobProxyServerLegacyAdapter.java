@@ -147,6 +147,32 @@ public class BrowserMobProxyServerLegacyAdapter extends BrowserMobProxyServer im
         public void setUpstreamMaxKB(long upstreamMaxKB) {
             BrowserMobProxyServerLegacyAdapter.this.setReadLimitKbps(upstreamMaxKB);
         }
+
+        @Override
+        public long getMaxUpstreamKB() {
+            return BrowserMobProxyServerLegacyAdapter.this.getReadBandwidthLimit() / 1024L;
+        }
+
+        /**
+         * @deprecated This method is no longer supported and does not return correct values.
+         */
+        @Override
+        public long getRemainingUpstreamKB() {
+            return super.getRemainingUpstreamKB();
+        }
+
+        @Override
+        public long getMaxDownstreamKB() {
+            return BrowserMobProxyServerLegacyAdapter.this.getWriteBandwidthLimit() / 1024L;
+        }
+
+        /**
+         * @deprecated This method is no longer supported and does not return correct values.
+         */
+        @Override
+        public long getRemainingDownstreamKB() {
+            return super.getRemainingDownstreamKB();
+        }
     }
 
     @Override

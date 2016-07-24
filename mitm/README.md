@@ -7,7 +7,7 @@ The MITM module uses "sensible" default settings that should work for the vast m
 ### LittleProxy (without BrowserMob Proxy)
 **Note:** The MITM module requires Java 7
 
-**Compatibility note:** If you are using LittleProxy 1.1.0-beta2, the latest compatible version of MITM is 2.1.0-beta-5. LittleProxy 1.1.0-beta3 and higher are compatible with MITM version 2.1.0-beta-6 and higher.
+**Compatibility note:** The current version of the MITM module is compatible with LittleProxy 1.1.0. If you are using LittleProxy 1.1.0-beta2 or earlier, use MITM 2.1.0-beta-5.
 
 To use MITM with standalone LittleProxy, add a dependency to the mitm module in your pom:
 
@@ -16,14 +16,14 @@ To use MITM with standalone LittleProxy, add a dependency to the mitm module in 
     <dependency>
         <groupId>org.littleshoot</groupId>
         <artifactId>littleproxy</artifactId>
-        <version>1.1.0-beta2</version>
+        <version>1.1.0</version>
     </dependency>
     
     <-- new dependency on the MITM module -->
     <dependency>
         <groupId>net.lightbody.bmp</groupId>
         <artifactId>mitm</artifactId>
-        <version>2.1.0-beta-5</version>
+        <version>2.1.2</version>
     </dependency>
 ```
 

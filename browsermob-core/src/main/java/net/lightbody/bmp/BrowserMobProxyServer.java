@@ -582,7 +582,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         if (isStarted()) {
             proxyServer.setThrottle(this.readBandwidthLimitBps, this.writeBandwidthLimitBps);
         }
+    }
 
+    @Override
+    public long getReadBandwidthLimit() {
+        return readBandwidthLimitBps;
     }
 
     @Override
@@ -592,6 +596,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         if (isStarted()) {
             proxyServer.setThrottle(this.readBandwidthLimitBps, this.writeBandwidthLimitBps);
         }
+    }
+
+    @Override
+    public long getWriteBandwidthLimit() {
+        return writeBandwidthLimitBps;
     }
 
     public void endPage() {

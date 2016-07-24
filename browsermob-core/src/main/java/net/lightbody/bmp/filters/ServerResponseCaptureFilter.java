@@ -83,7 +83,8 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
     @Override
     public HttpObject serverToProxyResponse(HttpObject httpObject) {
         if (httpObject instanceof HttpResponse) {
-            this.httpResponse = (HttpResponse) httpObject;
+            httpResponse = (HttpResponse) httpObject;
+            captureContentEncoding(httpResponse);
         }
 
         if (httpObject instanceof HttpContent) {
@@ -94,7 +95,6 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
             if (httpContent instanceof LastHttpContent) {
                 LastHttpContent lastContent = (LastHttpContent) httpContent;
                 captureTrailingHeaders(lastContent);
-                captureContentEncoding();
 
                 captureFullResponseContents();
             }
@@ -138,12 +138,21 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
         }
     }
 
-    protected void captureContentEncoding() {
+    protected void captureContentEncoding(HttpResponse httpResponse) {
         contentEncoding = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.CONTENT_ENCODING);
     }
 
     protected void captureTrailingHeaders(LastHttpContent lastContent) {
         trailingHeaders = lastContent.trailingHeaders();
+
+        // technically, the Content-Encoding header can be in a trailing header, although this is excruciatingly uncommon
+        if (trailingHeaders != null) {
+            String trailingContentEncoding = trailingHeaders.get(HttpHeaders.Names.CONTENT_ENCODING);
+            if (trailingContentEncoding != null) {
+                contentEncoding = trailingContentEncoding;
+            }
+        }
+
     }
 
     protected void storeResponseContent(HttpContent httpContent) {
