@@ -282,6 +282,7 @@ public class ProxyResource {
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
+            proxy.removeHeader(key);
             proxy.addHeader(key, value);
         }
         return Reply.saying().ok();
