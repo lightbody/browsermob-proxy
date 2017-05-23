@@ -180,6 +180,11 @@
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>2.10</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <version>3.0.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -538,5 +543,43 @@
                 <netty.version>${netty-4.1.version}</netty.version>
             </properties>
         </profile>
+
+        <!-- FindBugs can be enabled by setting findbugs property,
+             eg: mvn test -DskipTests -Dfindbugs -->
+        <profile>
+            <id>findbugs</id>
+            <activation>
+                <property>
+                    <name>findbugs</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>findbugs-maven-plugin</artifactId>
+                        <configuration>
+                            <plugins>
+                                <plugin>
+                                    <groupId>com.overstock.findbugs</groupId>
+                                    <artifactId>library-detectors</artifactId>
+                                    <version>1.1</version>
+                                </plugin>
+                            </plugins>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
     </profiles>
 </project>

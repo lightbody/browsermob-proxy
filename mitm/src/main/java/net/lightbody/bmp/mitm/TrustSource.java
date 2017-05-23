@@ -12,6 +12,8 @@ import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import static java.nio.file.Files.readAllBytes;
+
 /**
  * A source of trusted root certificate authorities. Provides static methods to obtain default trust sources:
  * <ul>
@@ -69,7 +71,7 @@ public class TrustSource {
      * may return an empty array.
      */
     public X509Certificate[] getTrustedCAs() {
-        return trustedCAs;
+        return trustedCAs.clone();
     }
 
     /**
@@ -174,7 +176,7 @@ public class TrustSource {
 
         String pemFileContents;
         try {
-            pemFileContents = Files.toString(trustedCAPemFile, StandardCharsets.UTF_8);
+            pemFileContents = new String(readAllBytes(trustedCAPemFile.toPath()), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException("Unable to read file containing PEM-encoded trusted CAs: " + trustedCAPemFile.getAbsolutePath(), e);
         }
