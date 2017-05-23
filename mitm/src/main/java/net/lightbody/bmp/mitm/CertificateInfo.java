@@ -35,11 +35,11 @@ public class CertificateInfo {
     }
 
     public Date getNotBefore() {
-        return notBefore;
+        return new Date(notBefore.getTime());
     }
 
     public Date getNotAfter() {
-        return notAfter;
+        return new Date(notAfter.getTime());
     }
 
     public String getEmail() {
@@ -78,12 +78,12 @@ public class CertificateInfo {
     }
 
     public CertificateInfo notBefore(Date notBefore) {
-        this.notBefore = notBefore;
+        this.notBefore = new Date(notBefore.getTime());
         return this;
     }
 
     public CertificateInfo notAfter(Date notAfter) {
-        this.notAfter = notAfter;
+        this.notAfter = new Date(notAfter.getTime());
         return this;
     }
 

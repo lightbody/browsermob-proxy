@@ -69,7 +69,7 @@ public class TrustSource {
      * may return an empty array.
      */
     public X509Certificate[] getTrustedCAs() {
-        return trustedCAs;
+        return trustedCAs.clone();
     }
 
     /**
