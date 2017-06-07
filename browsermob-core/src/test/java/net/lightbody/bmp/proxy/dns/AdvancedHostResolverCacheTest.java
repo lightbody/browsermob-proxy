@@ -71,7 +71,7 @@ public class AdvancedHostResolverCacheTest {
         resolver.resolve("www.msn.com");
         long finish = System.nanoTime();
 
-        assertNotEquals("Expected non-zero DNS lookup time for www.msn.com after clearing DNS cache", 0, TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS));
+        assertNotEquals("Expected non-zero DNS lookup time for www.msn.com after clearing DNS cache", 0, finish - start);
     }
 
     @Test
@@ -81,17 +81,17 @@ public class AdvancedHostResolverCacheTest {
         resolver.resolve("news.bing.com");
         long finish = System.nanoTime();
 
-        long uncachedLookupMs = TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS);
+        long uncachedLookupNs = finish - start;
 
-        assertNotEquals("Expected non-zero DNS lookup time for news.bing.com on first lookup", 0, uncachedLookupMs);
+        assertNotEquals("Expected non-zero DNS lookup time for news.bing.com on first lookup", 0, uncachedLookupNs);
 
         start = System.nanoTime();
         resolver.resolve("news.bing.com");
         finish = System.nanoTime();
 
-        long cachedLookupMs = TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS);
+        long cachedLookupNs = finish - start;
 
-        assertTrue("Expected extremely fast DNS lookup time for news.bing.com on second (cached) lookup. Uncached: " + uncachedLookupMs + "ms; cached: " + cachedLookupMs + "ms.", cachedLookupMs <= uncachedLookupMs / 2);
+        assertTrue("Expected extremely fast DNS lookup time for news.bing.com on second (cached) lookup. Uncached: " + uncachedLookupNs + "ns; cached: " + cachedLookupNs + "ns.", cachedLookupNs <= uncachedLookupNs / 2);
     }
 
     @Test
@@ -100,17 +100,17 @@ public class AdvancedHostResolverCacheTest {
         resolver.resolve("fake.notarealaddress");
         long finish = System.nanoTime();
 
-        long uncachedLookupMs = TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS);
+        long uncachedLookupNs = finish - start;
 
-        assertNotEquals("Expected non-zero DNS lookup time for fake.notarealaddress on first lookup", 0, uncachedLookupMs);
+        assertNotEquals("Expected non-zero DNS lookup time for fake.notarealaddress on first lookup", 0, uncachedLookupNs);
 
         start = System.nanoTime();
         resolver.resolve("fake.notarealaddress");
         finish = System.nanoTime();
 
-        long cachedLookupMs = TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS);
+        long cachedLookupNs = finish - start;
 
-        assertTrue("Expected extremely fast DNS lookup time for fake.notarealaddress on second (cached) lookup. Uncached: " + uncachedLookupMs + "ms; cached: " + cachedLookupMs + "ms.", cachedLookupMs <= uncachedLookupMs / 2);
+        assertTrue("Expected extremely fast DNS lookup time for fake.notarealaddress on second (cached) lookup. Uncached: " + uncachedLookupNs + "ns; cached: " + cachedLookupNs + "ns.", cachedLookupNs <= uncachedLookupNs / 2);
     }
 
     @Test
@@ -135,7 +135,7 @@ public class AdvancedHostResolverCacheTest {
         assertNotNull("Collection of resolved addresses should never be null", addresses);
         assertNotEquals("Expected to find addresses for www.msn.com", 0, addresses.size());
 
-        assertNotEquals("Expected non-zero DNS lookup time for www.msn.com after setting positive cache TTL", 0, TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS));
+        assertNotEquals("Expected non-zero DNS lookup time for www.msn.com after setting positive cache TTL", 0, finish - start);
     }
 
     @Test
@@ -163,7 +163,7 @@ public class AdvancedHostResolverCacheTest {
         assertNotNull("Collection of resolved addresses should never be null", addresses);
         assertEquals("Expected to find no addresses for " + fakeAddress, 0, addresses.size());
 
-        assertNotEquals("Expected non-zero DNS lookup time for " + fakeAddress + " after setting negative cache TTL", 0, TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS));
+        assertNotEquals("Expected non-zero DNS lookup time for " + fakeAddress + " after setting negative cache TTL", 0, finish - start);
     }
 
     @Test
@@ -185,12 +185,12 @@ public class AdvancedHostResolverCacheTest {
         addresses = resolver.resolve(fakeAddress);
         long finish = System.nanoTime();
 
-        long cachedLookupMs = TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS);
+        long cachedLookupNs = finish - start;
 
         assertNotNull("Collection of resolved addresses should never be null", addresses);
         assertEquals("Expected to find no addresses for " + fakeAddress, 0, addresses.size());
 
-        assertTrue("Expected extremely fast DNS lookup time for " + fakeAddress + " after setting eternal negative cache TTL. Cached lookup time: " + cachedLookupMs + "ms.", cachedLookupMs <= 10);
+        assertTrue("Expected extremely fast DNS lookup time for " + fakeAddress + " after setting eternal negative cache TTL. Cached lookup time: " + cachedLookupNs + "ns.", cachedLookupNs <= TimeUnit.NANOSECONDS.convert(10, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -204,7 +204,7 @@ public class AdvancedHostResolverCacheTest {
         long one = System.nanoTime();
         Collection<InetAddress> addresses = resolver.resolve("www.msn.com");
         long two = System.nanoTime();
-        log.info("Time to resolve address without cache: {}ms", TimeUnit.MILLISECONDS.convert(two - one, TimeUnit.NANOSECONDS));
+        log.info("Time to resolve address without cache: {}ns", two - one);
 
         // make sure there are addresses, since this is a *positive* TTL test
         assertNotNull("Collection of resolved addresses should never be null", addresses);
@@ -214,13 +214,13 @@ public class AdvancedHostResolverCacheTest {
         addresses = resolver.resolve("www.msn.com");
         long finish = System.nanoTime();
 
-        long cachedLookupMs = TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS);
+        long cachedLookupNs = finish - start;
 
-        log.info("Time to resolve address with cache: {}ms", TimeUnit.MILLISECONDS.convert(finish - start, TimeUnit.NANOSECONDS));
+        log.info("Time to resolve address with cache: {}ns", cachedLookupNs);
 
         assertNotNull("Collection of resolved addresses should never be null", addresses);
         assertNotEquals("Expected to find addresses for www.msn.com", 0, addresses.size());
 
-        assertTrue("Expected extremely fast DNS lookup time for www.msn.com after setting eternal negative cache TTL. Cached lookup time: " + cachedLookupMs + "ms.", cachedLookupMs <= 10);
+        assertTrue("Expected extremely fast DNS lookup time for www.msn.com after setting eternal negative cache TTL. Cached lookup time: " + cachedLookupNs + "ns.", cachedLookupNs <= TimeUnit.NANOSECONDS.convert(10, TimeUnit.MILLISECONDS));
     }
 }
