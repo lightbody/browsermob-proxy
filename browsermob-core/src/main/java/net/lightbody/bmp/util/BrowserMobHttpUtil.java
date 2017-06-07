@@ -276,7 +276,7 @@ public class BrowserMobHttpUtil {
         HostAndPort parsedHostAndPort = HostAndPort.fromString(hostWithPort);
         if (parsedHostAndPort.hasPort() && parsedHostAndPort.getPort() == portNumber) {
             // HostAndPort.getHostText() strips brackets from ipv6 addresses, so reparse using fromHost
-            return HostAndPort.fromHost(parsedHostAndPort.getHostText()).toString();
+            return HostAndPort.fromHost(parsedHostAndPort.getHost()).toString();
         } else {
             return hostWithPort;
         }

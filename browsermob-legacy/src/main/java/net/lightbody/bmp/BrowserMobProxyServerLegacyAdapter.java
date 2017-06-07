@@ -504,7 +504,7 @@ public class BrowserMobProxyServerLegacyAdapter extends BrowserMobProxyServer im
             log.warn("Chained proxy support through setOptions is deprecated. Use setUpstreamProxy() to enable chained proxy support.");
 
             HostAndPort hostAndPort = HostAndPort.fromString(httpProxy);
-            this.setChainedProxy(new InetSocketAddress(hostAndPort.getHostText(), hostAndPort.getPortOrDefault(80)));
+            this.setChainedProxy(new InetSocketAddress(hostAndPort.getHost(), hostAndPort.getPortOrDefault(80)));
         } else {
             if (errorOnUnsupportedOperation) {
                 throw new UnsupportedOperationException("The LittleProxy-based implementation of BrowserMob Proxy does not support the setOptions method. Use the methods defined in the BrowserMobProxy interface to set connection parameters.");
