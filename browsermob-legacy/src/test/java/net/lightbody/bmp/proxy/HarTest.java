@@ -5,7 +5,6 @@ import net.lightbody.bmp.core.har.HarContent;
 import net.lightbody.bmp.core.har.HarEntry;
 import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.core.har.HarNameValuePair;
-import net.lightbody.bmp.core.har.HarNameVersion;
 import net.lightbody.bmp.core.har.HarPage;
 import net.lightbody.bmp.core.har.HarPageTimings;
 import net.lightbody.bmp.core.har.HarPostData;
@@ -444,7 +443,7 @@ public class HarTest extends LocalServerTest {
         proxy.newHar("testEntryFieldsPopulatedForHttp");
 
         // not using localhost so we get >0ms timing
-        HttpGet get = new HttpGet("http://www.msn.com");
+        HttpGet get = new HttpGet("https://www.msn.com/en-us/");
         IOUtils.toStringAndClose(client.execute(get).getEntity().getContent());
 
         proxy.endPage();
@@ -501,7 +500,7 @@ public class HarTest extends LocalServerTest {
         proxy.newHar("testEntryFieldsPopulatedForHttps");
 
         // not using localhost so we get >0ms timing
-        HttpGet get = new HttpGet("https://www.msn.com");
+        HttpGet get = new HttpGet("https://www.msn.com/en-us/");
         IOUtils.toStringAndClose(client.execute(get).getEntity().getContent());
 
         proxy.endPage();
