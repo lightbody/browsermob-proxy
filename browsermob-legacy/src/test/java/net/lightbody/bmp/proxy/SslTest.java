@@ -28,11 +28,11 @@ public class SslTest extends ProxyServerTest {
     @Test
     public void testNewRelic() throws Exception {
         // see https://github.com/webmetrics/browsermob-proxy/issues/105
-        proxy.remapHost("foo.newrelic.com", "rpm.newrelic.com");
-        proxy.remapHost("bar.newrelic.com", "rpm.newrelic.com");
+        proxy.remapHost("foo.newrelic.com", "login.newrelic.com");
+        proxy.remapHost("bar.newrelic.com", "login.newrelic.com");
         get("https://foo.newrelic.com/");
         get("https://bar.newrelic.com/");
-        get("https://rpm.newrelic.com/");
+        get("https://login.newrelic.com/");
     }
 
     private void get(String url) throws IOException {
