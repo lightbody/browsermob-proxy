@@ -9,12 +9,15 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import net.lightbody.bmp.exception.DecompressionException;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
+import org.meteogroup.jbrotli.io.BrotliInputStream;
+import org.meteogroup.jbrotli.libloader.BrotliLibraryLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -108,6 +111,47 @@ public class BrowserMobHttpUtil {
                 log.warn("Unable to close gzip stream", e);
             }
         }
+        return fullMessage;
+    }
+
+    /**
+     * Decompresses the brotli byte stream.
+     *
+     * @param fullMessage brotli byte stream to decompress
+     * @return decompressed bytes
+     * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
+     */
+    public static byte[] decompressBrotliContents(byte[] fullMessage) throws DecompressionException {
+        BrotliLibraryLoader.loadBrotli();
+
+        InputStream brotliInputReader = null;
+        ByteArrayOutputStream uncompressed = null;
+
+        try {
+            brotliInputReader = new BrotliInputStream(new ByteArrayInputStream(fullMessage));
+
+            uncompressed = new ByteArrayOutputStream();
+
+            byte[] decompressBuffer = new byte[DECOMPRESS_BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = brotliInputReader.read(decompressBuffer, 0, decompressBuffer.length)) != -1) {
+                uncompressed.write(decompressBuffer, 0, bytesRead);
+            }
+
+            uncompressed.flush();
+            fullMessage = uncompressed.toByteArray();
+        } catch (IOException e) {
+            throw new DecompressionException("Unable to decompress response", e);
+        } finally {
+            try {
+                if (brotliInputReader != null) {
+                    brotliInputReader.close();
+                }
+            } catch (IOException e) {
+                log.warn("Unable to close brotli stream", e);
+            }
+        }
+
         return fullMessage;
     }
 

@@ -245,5 +245,17 @@
             <artifactId>hamcrest-library</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.meteogroup.jbrotli</groupId>
+            <artifactId>jbrotli-servlet</artifactId>
+            <version>0.5.0</version>
+        </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>bintray-nitram509-jbrotli</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/nitram509/jbrotli</url>
+        </repository>
+    </repositories>
 </project>
