@@ -2,7 +2,6 @@ package net.lightbody.bmp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.MapMaker;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
@@ -72,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -176,7 +176,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
      * by other threads concurrently (e.g. due to an incoming REST call), but the concurrencyLevel is set to 1 because modifications to the
      * additionalHeaders are rare, and in most cases happen only once, at start-up.
      */
-    private volatile ConcurrentMap<String, String> additionalHeaders = new MapMaker().concurrencyLevel(1).makeMap();
+    private volatile ConcurrentMap<String, String> additionalHeaders = new ConcurrentHashMap<>();
 
     /**
      * The amount of time to wait while connecting to a server.
@@ -250,9 +250,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
      * A mapping of hostnames to base64-encoded Basic auth credentials that will be added to the Authorization header for
      * matching requests.
      */
-    private final ConcurrentMap<String, String> basicAuthCredentials = new MapMaker()
-            .concurrencyLevel(1)
-            .makeMap();
+    private final ConcurrentMap<String, String> basicAuthCredentials = new ConcurrentHashMap<>();
 
     /**
      * Base64-encoded credentials to use to authenticate with the upstream proxy.
@@ -627,7 +625,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
     @Override
     public void addHeaders(Map<String, String> headers) {
-        ConcurrentMap<String, String> newHeaders = new MapMaker().concurrencyLevel(1).makeMap();
+        ConcurrentMap<String, String> newHeaders = new ConcurrentHashMap<>();
         newHeaders.putAll(headers);
 
         this.additionalHeaders = newHeaders;
