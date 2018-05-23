@@ -352,7 +352,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
                             public void filterRequest(HttpObject httpObject) {
                                 String chainedProxyAuth = chainedProxyCredentials;
                                 if (chainedProxyAuth != null) {
-                                    if (httpObject instanceof HttpRequest) {
+                                    if (httpObject instanceof HttpRequest && ((HttpRequest) httpObject).method().toString().equals("CONNECT")) {
                                         HttpHeaders.addHeader((HttpRequest)httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
                                     }
                                 }
