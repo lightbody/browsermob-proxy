@@ -555,7 +555,7 @@ public class ProxyResource {
 
     @Delete
     @At("/:port")
-    public Reply<?> delete(@Named("port") int port) {
+    public Reply<?> delete(@Named("port") int port, Request<String> request) {
         LegacyProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
             return Reply.saying().notFound();
