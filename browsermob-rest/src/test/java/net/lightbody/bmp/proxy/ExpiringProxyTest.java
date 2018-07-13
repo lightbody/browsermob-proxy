@@ -30,7 +30,7 @@ public class ExpiringProxyTest {
 
         // explicitly create a new proxy to cause a write to the cache. cleanups happen on "every" write and "occasional" reads, so force a cleanup by writing.
         int newPort = proxyManager.create(Collections.<String, String>emptyMap()).getPort();
-        proxyManager.delete(newPort);
+        proxyManager.delete(newPort, true);
 
         LegacyProxyServer expiredProxy = proxyManager.get(port);
 
@@ -57,7 +57,7 @@ public class ExpiringProxyTest {
 
         // explicitly create a new proxy to cause a write to the cache. cleanups happen on "every" write and "occasional" reads, so force a cleanup by writing.
         int newPort = proxyManager.create(Collections.<String, String>emptyMap()).getPort();
-        proxyManager.delete(newPort);
+        proxyManager.delete(newPort, true);
 
         LegacyProxyServer nonExpiredProxy = proxyManager.get(port);
 

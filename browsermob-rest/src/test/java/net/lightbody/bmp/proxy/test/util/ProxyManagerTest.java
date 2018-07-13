@@ -23,7 +23,7 @@ public abstract class ProxyManagerTest {
     public void tearDown() throws Exception {  
         for(LegacyProxyServer p : proxyManager.get()){
             try{
-                proxyManager.delete(p.getPort());
+                proxyManager.delete(p.getPort(), true);
             }catch(Exception e){ }
         }                
     }

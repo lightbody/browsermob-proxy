@@ -28,16 +28,16 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
             proxyManager.create(new HashMap<String, String>());        
             fail();
         }catch(ProxyPortsExhaustedException e){
-            proxyManager.delete(9093);
+            proxyManager.delete(9093, true);
             p = proxyManager.create(new HashMap<String, String>());
             assertEquals(9093, p.getPort());
             
-            proxyManager.delete(9091);
+            proxyManager.delete(9091, true);
             p = proxyManager.create(new HashMap<String, String>());
             assertEquals(9091, p.getPort());
                     
             for(int port : ports){
-                proxyManager.delete(port);
+                proxyManager.delete(port, true);
             }
         }
     }
@@ -51,7 +51,7 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
             fail();
         }catch(ProxyExistsException e){
             assertEquals(9094, e.getPort());
-            proxyManager.delete(9094);
+            proxyManager.delete(9094, true);
         }        
     }
 }
