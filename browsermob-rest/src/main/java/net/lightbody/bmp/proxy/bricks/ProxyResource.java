@@ -561,7 +561,10 @@ public class ProxyResource {
             return Reply.saying().notFound();
         }
 
-        proxyManager.delete(port);
+        String gracefulParam = request.param("graceful");
+        boolean graceful = gracefulParam == null ? true : Boolean.parseBoolean(gracefulParam);
+
+        proxyManager.delete(port, graceful);
         return Reply.saying().ok();
     }
 

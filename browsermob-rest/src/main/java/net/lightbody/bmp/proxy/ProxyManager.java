@@ -274,7 +274,7 @@ public class ProxyManager {
         return proxies.values();
     }
 
-    public void delete(int port) {
+    public void delete(int port, boolean graceful) {
         LegacyProxyServer proxy = proxies.remove(port);
         if (proxy == null) {
             return;
@@ -282,7 +282,11 @@ public class ProxyManager {
 
         // temporary: to avoid stopping an already-stopped BrowserMobProxyServer instance, see if it's stopped before re-stopping it
         if (proxy instanceof ProxyServer || !((BrowserMobProxyServer) proxy).isStopped()) {
-            proxy.stop();
+            if (graceful) {
+                proxy.stop();
+            } else {
+                proxy.abort();
+            }
         }
     }
 
