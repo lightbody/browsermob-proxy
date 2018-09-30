@@ -25,6 +25,7 @@ import java.io.IOException;
  */
 public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(ServerResponseCaptureFilter.class);
+    private static final String BROTLI_COMPRESSION = "br";
 
     /**
      * Populated by serverToProxyResponse() when processing the HttpResponse object
@@ -129,6 +130,13 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
         if (contentEncoding.equals(HttpHeaders.Values.GZIP)) {
             try {
                 fullResponseContents = BrowserMobHttpUtil.decompressContents(getRawResponseContents());
+                decompressionSuccessful = true;
+            } catch (RuntimeException e) {
+                log.warn("Failed to decompress response with encoding type " + contentEncoding + " when decoding request from " + originalRequest.getUri(), e);
+            }
+        } else if(contentEncoding.equals(BROTLI_COMPRESSION)) {
+            try {
+                fullResponseContents = BrowserMobHttpUtil.decompressBrotliContents(getRawResponseContents());
                 decompressionSuccessful = true;
             } catch (RuntimeException e) {
                 log.warn("Failed to decompress response with encoding type " + contentEncoding + " when decoding request from " + originalRequest.getUri(), e);

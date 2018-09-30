@@ -3,6 +3,7 @@ package net.lightbody.bmp.util;
 import com.google.common.io.BaseEncoding;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
+import org.brotli.dec.BrotliInputStream;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -78,7 +80,7 @@ public class BrowserMobHttpUtil {
     /**
      * Decompresses the gzipped byte stream.
      *
-     * @param fullMessage gzipped byte stream to decomress
+     * @param fullMessage gzipped byte stream to decompress
      * @return decompressed bytes
      * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
      */
@@ -106,6 +108,42 @@ public class BrowserMobHttpUtil {
                 }
             } catch (IOException e) {
                 log.warn("Unable to close gzip stream", e);
+            }
+        }
+        return fullMessage;
+    }
+
+    /**
+     * Decompresses the brotli byze stream
+     *
+     * @param fullMessage brotli byte stream to decompress
+     * @return decompressed bytes
+    * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
+     */
+    public static byte[] decompressBrotliContents(byte[] fullMessage) throws DecompressionException {
+        InputStream brotliReader = null;
+        ByteArrayOutputStream uncompressed;
+        try {
+            brotliReader = new BrotliInputStream(new ByteArrayInputStream(fullMessage));
+
+            uncompressed = new ByteArrayOutputStream(fullMessage.length);
+
+            byte[] decompressBuffer = new byte[DECOMPRESS_BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = brotliReader.read(decompressBuffer)) > -1) {
+                uncompressed.write(decompressBuffer, 0, bytesRead);
+            }
+
+            fullMessage = uncompressed.toByteArray();
+        } catch (IOException e) {
+            throw new DecompressionException("Unable to decompress response", e);
+        } finally {
+            try {
+                if (brotliReader != null) {
+                    brotliReader.close();
+                }
+            } catch (IOException e) {
+                log.warn("Unable to close brotli stream", e);
             }
         }
         return fullMessage;

@@ -139,6 +139,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- use google brotli for brotli decoding-->
+        <dependency>
+            <groupId>org.brotli</groupId>
+            <artifactId>dec</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+
         <!-- Netty will use javassist to improve performance if it is present on the classpath, but it is not required -->
         <dependency>
             <groupId>org.javassist</groupId>
