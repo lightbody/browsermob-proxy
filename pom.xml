@@ -57,6 +57,14 @@
         </repository>
     </distributionManagement>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>bintray</id>
+			<name>Groovy Bintray</name>
+			<url>https://dl.bintray.com/groovy/maven</url>
+		</pluginRepository>
+	</pluginRepositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -71,7 +79,7 @@
         <log4j.version>2.9.0</log4j.version>
 
         <groovy.version>2.4.12</groovy.version>
-        <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
+        <groovy-eclipse-batch.version>2.5.2-01</groovy-eclipse-batch.version>
 
         <netty.version>4.0.51.Final</netty.version>
         <!-- netty 4.1 version to use for browsermob-dist and when using the netty-4.1 profile -->
@@ -94,28 +102,27 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>${maven-jar-plugin.version}</version>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.6.1</version>
-                    <configuration>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.0</version><!-- 3.1 is the minimum -->
+					<configuration>
                         <compilerId>groovy-eclipse-compiler</compilerId>
                         <source>1.7</source>
                         <target>1.7</target>
-                    </configuration>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.codehaus.groovy</groupId>
-                            <artifactId>groovy-eclipse-compiler</artifactId>
-                            <version>2.9.2-01</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.codehaus.groovy</groupId>
-                            <artifactId>groovy-eclipse-batch</artifactId>
-                            <version>${groovy-eclipse-batch.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>org.codehaus.groovy</groupId>
+							<artifactId>groovy-eclipse-compiler</artifactId>
+							<version>3.0.0-01</version>
+						</dependency>
+						<dependency>
+							<groupId>org.codehaus.groovy</groupId>
+							<artifactId>groovy-eclipse-batch</artifactId>
+							<version>2.5.2-01</version>
+						</dependency>
+					</dependencies>
+				</plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
@@ -138,11 +145,21 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.19.1</version>
+                    <version>2.22.0</version>
                     <configuration>
-                        <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
+                        <argLine>-Xmx1g -XX:MaxPermSize=256m --illegal-access=permit</argLine>
                     </configuration>
                 </plugin>
+				<plugin>
+				    <groupId>org.apache.maven.plugins</groupId>
+				    <artifactId>maven-failsafe-plugin</artifactId>
+				    <version>2.22.0</version>
+				    <configuration>
+				        <argLine>
+				            --illegal-access=permit
+				        </argLine>
+				    </configuration>
+				</plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
