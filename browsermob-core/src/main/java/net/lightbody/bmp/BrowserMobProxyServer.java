@@ -151,6 +151,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
     private volatile EnumSet<CaptureType> harCaptureTypes = EnumSet.noneOf(CaptureType.class);
 
     /**
+     * Capture Javascript by default (providing captureContent is set)
+     */
+    public volatile Boolean captureJavascriptContent = true;
+    
+    /**
      * The current HAR being captured.
      */
     private volatile Har har;
@@ -481,6 +486,14 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         } else {
             harCaptureTypes = EnumSet.copyOf(harCaptureSettings);
         }
+    }
+
+    public void setCaptureJavascriptContent(Boolean captureJavascriptContent) {
+        this.captureJavascriptContent = captureJavascriptContent;
+    }
+    
+    public Boolean getCaptureJavascriptContent() {
+        return this.captureJavascriptContent;
     }
 
     @Override
@@ -1151,7 +1164,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
                 public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                     Har har = getHar();
                     if (har != null && !ProxyUtils.isCONNECT(originalRequest)) {
-                        return new HarCaptureFilter(originalRequest, ctx, har, getCurrentHarPage() == null ? null : getCurrentHarPage().getId(), getHarCaptureTypes());
+                        return new HarCaptureFilter(originalRequest, ctx, har, getCurrentHarPage() == null ? null : getCurrentHarPage().getId(), getHarCaptureTypes(), getCaptureJavascriptContent());
                     } else {
                         return null;
                     }

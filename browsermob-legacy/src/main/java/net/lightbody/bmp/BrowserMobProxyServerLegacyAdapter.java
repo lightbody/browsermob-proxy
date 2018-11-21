@@ -43,6 +43,12 @@ public class BrowserMobProxyServerLegacyAdapter extends BrowserMobProxyServer im
     private volatile boolean errorOnUnsupportedOperation = false;
 
     /**
+     * When true will capture Javascript content
+     */
+    
+    private volatile Boolean captureJavascriptContent = true;
+    
+    /**
      * The port to start the proxy on, if set using {@link #setPort(int)}.
      */
     private volatile int port;
@@ -393,6 +399,11 @@ public class BrowserMobProxyServerLegacyAdapter extends BrowserMobProxyServer im
         }
     }
 
+    @Deprecated
+    public void setCaptureJavascriptContent(Boolean captureJavascriptContent) {
+        this.captureJavascriptContent = captureJavascriptContent;
+    }
+   
     /**
      * @deprecated use {@link #getHarCaptureTypes()} to check for relevant {@link net.lightbody.bmp.proxy.CaptureType}
      */

@@ -144,6 +144,11 @@ public class BrowserMobHttpClient {
     private volatile boolean captureContent;
 
     /**
+     * keep Javascript contents
+     */
+    private volatile Boolean captureJavascriptContent = true;
+
+    /**
      * keep binary contents (if captureContent is set to true, default policy is to capture binary contents too)
      */
     private volatile boolean captureBinaryContent = true;
@@ -1004,7 +1009,12 @@ public class BrowserMobHttpClient {
                     } 
 
                     if (hasTextualContent(contentType)) {
-                        setTextOfEntry(entry, copy, contentType);
+                        if (captureJavascriptContent && ( contentType.startsWith("application/javascript") || contentType.startsWith("application/x-javascript"))) {
+                            setTextOfEntry(entry, copy, contentType);
+                        }
+                        else if (!contentType.startsWith("application/javascript") && !contentType.startsWith("application/x-javascript")) {
+                            setTextOfEntry(entry, copy, contentType);
+                        }
                     } else if(captureBinaryContent){
                         setBinaryContentOfEntry(entry, copy);
                     }
@@ -1381,6 +1391,11 @@ public class BrowserMobHttpClient {
     public void setCaptureContent(boolean captureContent) {
         this.captureContent = captureContent;
     }
+    
+    public void setCaptureJavascriptContent(Boolean captureJavascriptContent) {
+        this.captureJavascriptContent = captureJavascriptContent;
+    }
+
 
     public void setCaptureBinaryContent(boolean captureBinaryContent) {
         this.captureBinaryContent = captureBinaryContent;
