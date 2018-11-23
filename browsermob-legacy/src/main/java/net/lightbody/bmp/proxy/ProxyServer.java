@@ -849,6 +849,11 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
     
     @Override
+    public void setCaptureJavascriptContent(Boolean captureJavascriptContent) {
+        client.setCaptureJavascriptContent(captureJavascriptContent);
+    }
+
+    @Override
     public void setCaptureBinaryContent(boolean captureBinaryContent) {
         client.setCaptureBinaryContent(captureBinaryContent);
     }

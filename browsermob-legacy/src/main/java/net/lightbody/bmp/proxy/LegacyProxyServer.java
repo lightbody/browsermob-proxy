@@ -125,6 +125,8 @@ public interface LegacyProxyServer {
     void setCaptureHeaders(boolean captureHeaders);
 
     void setCaptureContent(boolean captureContent);
+    
+    void setCaptureJavascriptContent(Boolean captureJavascriptContent);
 
     void setCaptureBinaryContent(boolean captureBinaryContent);
 

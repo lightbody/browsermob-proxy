@@ -90,6 +90,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
 
     private volatile long responseReceiveStartedNanos;
 
+    private volatile Boolean captureJavascriptContent;
+    
     /**
      * The address of the client making the request. Captured in the constructor and used when calculating and capturing ssl handshake and connect
      * timing information for SSL connections.
@@ -133,8 +135,10 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
      * @param currentPageRef the ProxyServer's currentPageRef at the time this request is received from the client
      * @param dataToCapture the data types to capture for this request. null or empty set indicates only basic information will be
      *                      captured (see {@link net.lightbody.bmp.proxy.CaptureType} for information on data collected for each CaptureType)
+    * @param captureJavascriptContent whether to capture Javascript or not
      */
-    public HarCaptureFilter(HttpRequest originalRequest, ChannelHandlerContext ctx, Har har, String currentPageRef, Set<CaptureType> dataToCapture) {
+
+    public HarCaptureFilter(HttpRequest originalRequest, ChannelHandlerContext ctx, Har har, String currentPageRef, Set<CaptureType> dataToCapture, Boolean captureJavascriptContent) {
         super(originalRequest, ctx);
 
         if (har == null) {
@@ -153,6 +157,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             this.dataToCapture = EnumSet.noneOf(CaptureType.class);
         }
 
+        this.captureJavascriptContent = captureJavascriptContent;
+        
         // we may need to capture both the request and the response, so set up the request/response filters and delegate to them when
         // the corresponding filter methods are invoked. to save time and memory, only set up the capturing filters when
         // we actually need to capture the data.
@@ -442,7 +448,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             harEntry.getRequest().getPostData().setText(postBody);
         }
     }
-
+    
     protected void captureResponseContent(HttpResponse httpResponse, byte[] fullMessage) {
         // force binary if the content encoding is not supported
         boolean forceBinary = false;
@@ -472,10 +478,17 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             charset = BrowserMobHttpUtil.DEFAULT_HTTP_CHARSET;
             log.debug("No charset specified; using charset {} to decode contents from {}", charset, originalRequest.getUri());
         }
-
+        
         if (!forceBinary && BrowserMobHttpUtil.hasTextualContent(contentType)) {
-            String text = BrowserMobHttpUtil.getContentAsString(fullMessage, charset);
-            harEntry.getResponse().getContent().setText(text);
+            if (this.captureJavascriptContent && (contentType.startsWith("application/x-javascript") || contentType.startsWith("application/javascript"))) {
+
+                String text = BrowserMobHttpUtil.getContentAsString(fullMessage, charset);
+                harEntry.getResponse().getContent().setText(text);
+            }
+            else if (!(contentType.startsWith("application/x-javascript") || contentType.startsWith("application/javascript"))) {
+                String text = BrowserMobHttpUtil.getContentAsString(fullMessage, charset);
+                harEntry.getResponse().getContent().setText(text);  
+            }
         } else if (dataToCapture.contains(CaptureType.RESPONSE_BINARY_CONTENT)) {
             harEntry.getResponse().getContent().setText(BaseEncoding.base64().encode(fullMessage));
             harEntry.getResponse().getContent().setEncoding("base64");

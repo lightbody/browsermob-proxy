@@ -144,19 +144,26 @@ public class ProxyResource {
         String initialPageRef = request.param("initialPageRef");
         String initialPageTitle = request.param("initialPageTitle");
         Har oldHar = proxy.newHar(initialPageRef, initialPageTitle);
-
         String captureHeaders = request.param("captureHeaders");
         String captureContent = request.param("captureContent");
         String captureBinaryContent = request.param("captureBinaryContent");
+  
         proxy.setCaptureHeaders(Boolean.parseBoolean(captureHeaders));
         proxy.setCaptureContent(Boolean.parseBoolean(captureContent));
-        proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
 
         String captureCookies = request.param("captureCookies");
-        if (proxy instanceof BrowserMobProxyServer && Boolean.parseBoolean(captureCookies)) {
+        String captureJavascriptContent = request.param("captureJavascriptContent");
+        
+        proxy.setCaptureJavascriptContent(Boolean.parseBoolean(captureJavascriptContent));
+
+        if (proxy instanceof BrowserMobProxyServer) {
             BrowserMobProxyServer browserMobProxyServer = (BrowserMobProxyServer) proxy;
-            browserMobProxyServer.enableHarCaptureTypes(CaptureType.getCookieCaptureTypes());
+            browserMobProxyServer.captureJavascriptContent = Boolean.parseBoolean(captureJavascriptContent);
+            if (Boolean.parseBoolean(captureCookies)) {
+                browserMobProxyServer.enableHarCaptureTypes(CaptureType.getCookieCaptureTypes());
+            }
         }
+        proxy.setCaptureBinaryContent(Boolean.parseBoolean(captureBinaryContent));
 
         if (oldHar != null) {
             return Reply.with(oldHar).as(Json.class);
