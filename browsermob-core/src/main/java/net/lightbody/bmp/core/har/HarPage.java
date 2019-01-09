@@ -55,6 +55,10 @@ public class HarPage {
         return pageTimings;
     }
 
+    public void setPageTimings(HarPageTimings pageTimings) {
+        this.pageTimings = pageTimings;
+    }
+    
     public String getComment() {
         return comment;
     }
