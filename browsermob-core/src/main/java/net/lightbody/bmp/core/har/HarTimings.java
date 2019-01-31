@@ -1,15 +1,24 @@
 package net.lightbody.bmp.core.har;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.concurrent.TimeUnit;
 
 public class HarTimings {
     // optional values are initialized to -1, which indicates they do not apply to the current request, according to the HAR spec
+    @JsonProperty("blocked")
     private volatile long blockedNanos = -1;
+    @JsonProperty("dns")
     private volatile long dnsNanos = -1;
+    @JsonProperty("connect")
     private volatile long connectNanos = -1;
+    @JsonProperty("send")
     private volatile long sendNanos;
+    @JsonProperty("wait")
     private volatile long waitNanos;
+    @JsonProperty("receive")
     private volatile long receiveNanos;
+    @JsonProperty("ssl")
     private volatile long sslNanos = -1;
     private volatile String comment = "";
 
@@ -49,7 +58,7 @@ public class HarTimings {
     public void setDns(long dns, TimeUnit timeUnit) {
         if (dns == -1) {
             this.dnsNanos = -1;
-        } else{
+        } else {
             this.dnsNanos = TimeUnit.NANOSECONDS.convert(dns, timeUnit);
         }
     }
