@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.6-SNAPSHOT</version>
+    <version>2.1.6</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -47,14 +47,16 @@
     </scm>
 
     <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>central</id>
+            <name>artifactory-artifactory-0-releases</name>
+            <url>https://artifactory.tools-k8s.hellofresh.io/artifactory/maven</url>
         </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>artifactory-artifactory-0-snapshots</name>
+            <url>https://artifactory.tools-k8s.hellofresh.io/artifactory/maven</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <properties>
