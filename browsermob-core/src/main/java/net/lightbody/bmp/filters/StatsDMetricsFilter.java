@@ -20,7 +20,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
 
     public StatsDMetricsFilter(HttpRequest originalRequest, ChannelHandlerContext ctx) {
         super(originalRequest, ctx);
-        this.client = new NonBlockingStatsDClient("proxy", getStatsDHost(), getStatsDPort());
+        this.client = new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort());
     }
 
     @Override
@@ -45,7 +45,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
                 String url = HTTP_RESPONSE_STACK.pop();
                 try {
                     URI uri = new URI(url);
-                    metric = uri.getHost().concat(uri.getPath());
+                    metric = "proxy.".concat(uri.getHost().concat(uri.getPath()));
                     client.increment(metric);
                     HTTP_RESPONSE_STACK.clear();
                 } catch (URISyntaxException e) {
