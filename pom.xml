@@ -1,8 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.7-SNAPSHOT</version>
+    <version>2.1.7</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -80,6 +81,7 @@
         <netty-4.1.version>4.1.15.Final</netty-4.1.version>
 
         <bouncycastle.version>1.58</bouncycastle.version>
+        <java-statsd-client.version>3.0.1</java-statsd-client.version>
     </properties>
 
     <build>
@@ -411,6 +413,12 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.timgroup</groupId>
+                <artifactId>java-statsd-client</artifactId>
+                <version>${java-statsd-client.version}</version>
             </dependency>
 
             <dependency>

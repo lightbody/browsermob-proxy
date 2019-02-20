@@ -12,24 +12,7 @@ import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.core.har.HarNameVersion;
 import net.lightbody.bmp.core.har.HarPage;
-import net.lightbody.bmp.filters.AddHeadersFilter;
-import net.lightbody.bmp.filters.AutoBasicAuthFilter;
-import net.lightbody.bmp.filters.BlacklistFilter;
-import net.lightbody.bmp.filters.BrowserMobHttpFilterChain;
-import net.lightbody.bmp.filters.HarCaptureFilter;
-import net.lightbody.bmp.filters.HttpConnectHarCaptureFilter;
-import net.lightbody.bmp.filters.HttpsHostCaptureFilter;
-import net.lightbody.bmp.filters.HttpsOriginalHostCaptureFilter;
-import net.lightbody.bmp.filters.LatencyFilter;
-import net.lightbody.bmp.filters.RegisterRequestFilter;
-import net.lightbody.bmp.filters.RequestFilter;
-import net.lightbody.bmp.filters.RequestFilterAdapter;
-import net.lightbody.bmp.filters.ResolvedHostnameCacheFilter;
-import net.lightbody.bmp.filters.ResponseFilter;
-import net.lightbody.bmp.filters.ResponseFilterAdapter;
-import net.lightbody.bmp.filters.RewriteUrlFilter;
-import net.lightbody.bmp.filters.UnregisterRequestFilter;
-import net.lightbody.bmp.filters.WhitelistFilter;
+import net.lightbody.bmp.filters.*;
 import net.lightbody.bmp.mitm.KeyStoreFileCertificateSource;
 import net.lightbody.bmp.mitm.TrustSource;
 import net.lightbody.bmp.mitm.keys.ECKeyGenerator;
@@ -353,7 +336,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
                                 String chainedProxyAuth = chainedProxyCredentials;
                                 if (chainedProxyAuth != null) {
                                     if (httpObject instanceof HttpRequest) {
-                                        HttpHeaders.addHeader((HttpRequest)httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
+                                        HttpHeaders.addHeader((HttpRequest) httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
                                     }
                                 }
                             }
@@ -1095,6 +1078,13 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
             @Override
             public HttpFilters filterRequest(HttpRequest originalRequest) {
                 return new AddHeadersFilter(originalRequest, additionalHeaders);
+            }
+        });
+
+        addHttpFilterFactory(new HttpFiltersSourceAdapter() {
+            @Override
+            public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
+                return new StatsDMetricsFilter(originalRequest, ctx);
             }
         });
 
