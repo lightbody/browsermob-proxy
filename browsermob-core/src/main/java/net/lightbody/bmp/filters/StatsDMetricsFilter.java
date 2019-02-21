@@ -40,7 +40,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
             HttpResponse httpResponse = (HttpResponse) httpObject;
 
             int status = httpResponse.getStatus().code();
-            if (status > 0 || status == 0) {
+            if (status > 399 || status == 0) {
                 String metric;
                 String url = HTTP_RESPONSE_STACK.pop();
                 try {
