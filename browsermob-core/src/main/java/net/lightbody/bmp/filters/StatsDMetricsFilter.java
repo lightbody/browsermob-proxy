@@ -45,7 +45,8 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
                 String url = HTTP_RESPONSE_STACK.pop();
                 try {
                     URI uri = new URI(url);
-                    metric = "proxy.".concat(uri.getHost().concat(uri.getPath()));
+                    metric = "proxy.".concat(
+                            prepareMetric(uri.getHost().concat(uri.getPath())).concat(String.format(".%s", status)));
                     client.increment(metric);
                     HTTP_RESPONSE_STACK.clear();
                 } catch (URISyntaxException e) {
@@ -56,7 +57,6 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
         return super.serverToProxyResponse(httpObject);
     }
 
-
     public static String getStatsDHost() {
         return StringUtils.isEmpty(System.getenv("STATSD_HOST")) ? "graphite000.tools.hellofresh.io" : System.getenv("STATSD_HOST");
     }
@@ -64,4 +64,9 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     public static int getStatsDPort() {
         return StringUtils.isEmpty(System.getenv("STATSD_PORT")) ? 8125 : NumberUtils.toInt(System.getenv("STATSD_PORT"));
     }
+
+    private String prepareMetric(String initialUrl) {
+        return initialUrl.replaceAll("/", "_").replaceAll("\\.", "_");
+    }
+
 }
