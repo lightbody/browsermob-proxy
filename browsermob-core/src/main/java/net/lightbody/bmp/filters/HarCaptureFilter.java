@@ -51,7 +51,7 @@ import static net.lightbody.bmp.filters.StatsDMetricsFilter.getStatsDPort;
 
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
-    private static final StatsDClient statsDClient = new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort());
+    private static final ThreadLocal<StatsDClient> statsDClient = new InheritableThreadLocal<>();
 
     /**
      * The currently active HAR at the time the current request is received.
@@ -174,6 +174,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             responseCaptureFilter = null;
         }
 
+        createStatsDClient();
+
         this.har = har;
 
         this.harEntry = new HarEntry(currentPageRef);
@@ -205,8 +207,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             HarResponse defaultHarResponse = HarCaptureUtil.createHarResponseForFailure();
             defaultHarResponse.setError(HarCaptureUtil.getNoResponseReceivedErrorMessage());
             harEntry.setResponse(defaultHarResponse);
-            statsDClient.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
-                    .concat("." + harEntry.getResponse().getStatus()).concat(".client_proxy_connection_fail"));
 
             captureQueryParameters(httpRequest);
             // not capturing user agent: in many cases, it doesn't make sense to capture at the HarLog level, since the proxy could be
@@ -286,7 +286,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         // replace any existing HarResponse that was created if the server sent a partial response
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
         harEntry.setResponse(response);
-        statsDClient.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+        createStatsDClient();
+        statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                 .concat("." + harEntry.getResponse().getStatus()).concat(".response_timeout"));
 
         response.setError(HarCaptureUtil.getResponseTimedOutErrorMessage());
@@ -661,7 +662,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     public void proxyToServerResolutionFailed(String hostAndPort) {
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
         harEntry.setResponse(response);
-        statsDClient.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+        createStatsDClient();
+        statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                 .concat("." + harEntry.getResponse().getStatus()).concat(".server_resolution_fail"));
 
         response.setError(HarCaptureUtil.getResolutionFailedErrorMessage(hostAndPort));
@@ -704,7 +706,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     @Override
     public void proxyToServerConnectionFailed() {
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
-        statsDClient.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+        createStatsDClient();
+        statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                 .concat("." + harEntry.getResponse().getStatus()).concat(".server_connection_fail"));
         harEntry.setResponse(response);
 
@@ -775,6 +778,13 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             harEntry.getTimings().setReceive(responseReceivedNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         } else {
             harEntry.getTimings().setReceive(0L, TimeUnit.NANOSECONDS);
+        }
+    }
+
+
+    private void createStatsDClient() {
+        if (statsDClient.get() == null) {
+            statsDClient.set(new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort()));
         }
     }
 }
