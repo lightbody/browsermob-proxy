@@ -1,6 +1,8 @@
 package net.lightbody.bmp.filters;
 
 import com.google.common.cache.CacheBuilder;
+import com.timgroup.statsd.NonBlockingStatsDClient;
+import com.timgroup.statsd.StatsDClient;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
@@ -23,6 +25,8 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
+
 /**
  * This filter captures HAR data for HTTP CONNECT requests. CONNECTs are "meta" requests that must be made before HTTPS
  * requests, but are not populated as separate requests in the HAR. Most information from HTTP CONNECTs (such as SSL
@@ -31,10 +35,10 @@ import java.util.concurrent.TimeUnit;
  * static methods. This filter also handles HTTP CONNECT errors and creates HAR entries for those errors, since there
  * would otherwise not be any record in the HAR of the error (if the CONNECT fails, there will be no subsequent "real"
  * request in which to record the error).
- *
  */
 public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implements ModifiedRequestAwareFilter {
     private static final Logger log = LoggerFactory.getLogger(HttpConnectHarCaptureFilter.class);
+    private static final StatsDClient statsDClient = new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort());
 
     /**
      * The currently active HAR at the time the current request is received.
@@ -104,7 +108,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
     /**
      * Stores SSL connection timing information from HTTP CONNNECT requests. This timing information is stored in the first HTTP request
      * after the CONNECT, not in the CONNECT itself, so it needs to be stored across requests.
-     *
+     * <p>
      * This is the only state stored across multiple requests.
      */
     private static final ConcurrentMap<InetSocketAddress, HttpConnectTiming> httpConnectTimes =
@@ -330,6 +334,8 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
 
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
         harEntry.setResponse(response);
+        statsDClient.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+                .concat("." + harEntry.getResponse().getStatus()).concat(".failed_connect_request"));
 
         response.setError(errorMessage);
 
