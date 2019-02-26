@@ -14,9 +14,9 @@
     <dependencies>
         <dependency>
             <!-- Temporarily using the BMP release of littleproxy because LP 1.1.2 is incompatible with guava 22+ -->
-            <groupId>net.lightbody.bmp</groupId>
+            <groupId>org.littleshoot</groupId>
             <artifactId>littleproxy</artifactId>
-            <version>1.1.0-beta-bmp-17</version>
+            <version>1.1.3-SNAPSHOT</version>
             <optional>true</optional>
             <exclusions>
                 <exclusion>

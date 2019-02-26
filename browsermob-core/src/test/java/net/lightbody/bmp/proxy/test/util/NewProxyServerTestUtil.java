@@ -6,7 +6,6 @@ import org.apache.http.conn.ssl.*;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,12 +37,7 @@ public class NewProxyServerTestUtil {
         try {
             // Trust all certs -- under no circumstances should this ever be used outside of testing
             SSLContext sslcontext = org.apache.http.ssl.SSLContexts.custom()
-                    .loadTrustMaterial(null, new TrustStrategy() {
-                        @Override
-                        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                            return true;
-                        }
-                    })
+                    .loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true)
                     .build();
 
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(

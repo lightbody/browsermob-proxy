@@ -97,8 +97,8 @@ public class InterceptorTest extends MockServerTest {
 
                             HttpRequest httpRequest = (HttpRequest) httpObject;
 
-                            if (httpRequest.getMethod().equals(HttpMethod.GET) && httpRequest.getUri().contains("/shortcircuit204")) {
-                                HttpResponse httpResponse = new DefaultHttpResponse(httpRequest.getProtocolVersion(), HttpResponseStatus.NO_CONTENT);
+                            if (httpRequest.method().equals(HttpMethod.GET) && httpRequest.uri().contains("/shortcircuit204")) {
+                                HttpResponse httpResponse = new DefaultHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.NO_CONTENT);
 
                                 shortCircuitFired.set(true);
 
