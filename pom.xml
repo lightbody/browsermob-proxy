@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.12-SNAPSHOT</version>
+    <version>2.1.11</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -65,7 +65,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <slf4j.version>1.7.25</slf4j.version>
-        <selenium.version>2.53.1</selenium.version>
+        <selenium.version>3.141.59</selenium.version>
 
         <jackson.version>2.8.9</jackson.version>
 
@@ -73,14 +73,14 @@
 
         <log4j.version>2.9.0</log4j.version>
 
-        <groovy.version>2.4.12</groovy.version>
-        <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
+        <groovy.version>2.5.6</groovy.version>
+        <groovy-eclipse-batch.version>2.5.6-01</groovy-eclipse-batch.version>
 
-        <netty.version>4.0.51.Final</netty.version>
+        <netty.version>4.1.33.Final</netty.version>
         <!-- netty 4.1 version to use for browsermob-dist and when using the netty-4.1 profile -->
-        <netty-4.1.version>4.1.15.Final</netty-4.1.version>
+        <netty-4.1.version>4.1.33.Final</netty-4.1.version>
 
-        <bouncycastle.version>1.58</bouncycastle.version>
+        <bouncycastle.version>1.61</bouncycastle.version>
         <java-statsd-client.version>3.0.1</java-statsd-client.version>
     </properties>
 
@@ -283,7 +283,7 @@
             <dependency>
                 <groupId>org.mock-server</groupId>
                 <artifactId>mockserver-netty</artifactId>
-                <version>3.10.4</version>
+                <version>5.5.1</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
@@ -319,13 +319,13 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.3</version>
+                <version>4.5.7</version>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
-                <version>4.5.3</version>
+                <version>4.5.7</version>
             </dependency>
 
             <dependency>
@@ -424,7 +424,7 @@
             <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
-                <version>3.21.0-GA</version>
+                <version>3.24.1-GA</version>
             </dependency>
 
         </dependencies>

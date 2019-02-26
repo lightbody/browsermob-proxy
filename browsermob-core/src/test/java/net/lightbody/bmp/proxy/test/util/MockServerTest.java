@@ -14,7 +14,7 @@ public class MockServerTest {
     @Before
     public void setUpMockServer() {
         mockServer = new ClientAndServer(0);
-        mockServerPort = mockServer.getPort();
+        mockServerPort = mockServer.getLocalPort();
     }
 
     @After

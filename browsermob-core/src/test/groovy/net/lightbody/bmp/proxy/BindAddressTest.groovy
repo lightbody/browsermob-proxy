@@ -4,8 +4,11 @@ import net.lightbody.bmp.BrowserMobProxy
 import net.lightbody.bmp.BrowserMobProxyServer
 import net.lightbody.bmp.proxy.test.util.MockServerTest
 import net.lightbody.bmp.proxy.test.util.NewProxyServerTestUtil
+import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.conn.HttpHostConnectException
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -68,6 +71,10 @@ class BindAddressTest extends MockServerTest {
 
         proxy = new BrowserMobProxyServer()
         proxy.start(0, localHostAddr)
+
+
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpResponse response = httpclient.execute( new HttpGet("http://127.0.0.1:${mockServerPort}/clientbind"));
 
         NewProxyServerTestUtil.getNewHttpClient(proxy.getPort()).withCloseable {
             it.execute(new HttpGet("http://127.0.0.1:${mockServerPort}/clientbind"))
