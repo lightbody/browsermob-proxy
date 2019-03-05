@@ -17,7 +17,7 @@ To use MITM with standalone LittleProxy, add a dependency on the `mitm` module i
     <dependency>
         <groupId>org.littleshoot</groupId>
         <artifactId>littleproxy</artifactId>
-        <version>1.1.2</version>
+        <version>1.1.3</version>
     </dependency>
     
     <!-- new dependency on the MITM module -->
