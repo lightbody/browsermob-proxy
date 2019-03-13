@@ -65,7 +65,7 @@ class RewriteUrlFilterTest extends MockServerTest {
         when(mockHeaders.contains(HttpHeaders.Names.HOST)).thenReturn(false)
 
         HttpRequest request = mock(HttpRequest.class);
-        when(request.getUri()).thenReturn('http://www.yahoo.com?param=someValue');
+        when(request.uri()).thenReturn('http://www.yahoo.com?param=someValue');
         when(request.headers()).thenReturn(mockHeaders)
 
         Collection<RewriteRule> rewriteRules = ImmutableList.of(
