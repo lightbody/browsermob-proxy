@@ -1,10 +1,7 @@
 package net.lightbody.bmp.filters;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.*;
 import net.lightbody.bmp.util.HttpUtil;
 import net.lightbody.bmp.proxy.RewriteRule;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
@@ -64,7 +61,7 @@ public class RewriteUrlFilter extends HttpsAwareFiltersAdapter {
                 // if the URI in the request contains the scheme, host, and port, the request's URI can be replaced
                 // with the rewritten URI. if not (for example, on HTTPS requests), strip the scheme, host, and port from
                 // the rewritten URL before replacing the URI on the request.
-                String uriFromRequest = httpRequest.getUri();
+                String uriFromRequest = httpRequest.uri();
                 if (HttpUtil.startsWithHttpOrHttps(uriFromRequest)) {
                     httpRequest.setUri(rewrittenUrl);
                 } else {
@@ -117,7 +114,7 @@ public class RewriteUrlFilter extends HttpsAwareFiltersAdapter {
                                 originalHostAndPort, modifiedHostAndPort);
                     } else {
                         // only modify the Host header if it already exists
-                        if (httpRequest.headers().contains(HttpHeaders.Names.HOST)) {
+                        if (httpRequest.headers().contains(HttpHeaderNames.HOST)) {
                             HttpHeaders.setHost(httpRequest, modifiedHostAndPort);
                         }
                     }

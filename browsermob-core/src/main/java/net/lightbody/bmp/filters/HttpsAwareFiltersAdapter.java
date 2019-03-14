@@ -54,7 +54,7 @@ public class HttpsAwareFiltersAdapter extends HttpFiltersAdapter {
         // special case: for HTTPS requests, the full URL is scheme (https://) + the URI of this request
         if (ProxyUtils.isCONNECT(modifiedRequest)) {
             // CONNECT requests contain the default port, even if it isn't specified on the request.
-            String hostNoDefaultPort = BrowserMobHttpUtil.removeMatchingPort(modifiedRequest.uri(), 443);
+            String hostNoDefaultPort = BrowserMobHttpUtil.removeMatchingPort(modifiedRequest.getUri(), 443);
             return "https://" + hostNoDefaultPort;
         }
 
