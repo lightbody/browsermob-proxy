@@ -14,11 +14,10 @@ import org.slf4j.MDC;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayDeque;
 
 public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     private StatsDClient client;
-    private static ArrayDeque<HttpRequest> HTTP_REQUEST_STORAGE = new ArrayDeque<>();
+    private static InheritableThreadLocal<HttpRequest> HTTP_REQUEST_STORAGE = new InheritableThreadLocal<>();
     private static final Logger log = LoggerFactory.getLogger(StatsDMetricsFilter.class);
 
 
@@ -31,7 +30,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         if (httpObject instanceof HttpRequest) {
             HttpRequest httpRequest = (HttpRequest) httpObject;
-            HTTP_REQUEST_STORAGE.push(httpRequest);
+            HTTP_REQUEST_STORAGE.set(httpRequest);
         }
         return null;
     }
@@ -48,15 +47,15 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     }
 
     private void prepareStatsDMetrics(int status) {
-        if (status > 399 || status == 0) {
+        if (status > 0 || status == 0) {
             String metric;
-            HttpRequest request = HTTP_REQUEST_STORAGE.pop();
+            HttpRequest request = HTTP_REQUEST_STORAGE.get();
             String url = getFullUrl(request);
             logFailedRequestIfRequired(status, request, url);
             metric = getProxyPrefix().concat(
                     prepareMetric(url)).concat(String.format(".%s", status));
             client.increment(metric);
-            HTTP_REQUEST_STORAGE.clear();
+            HTTP_REQUEST_STORAGE.remove();
         }
     }
 
@@ -67,7 +66,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
             MDC.put("http_host", url);
             MDC.put("request_details", request.toString());
             MDC.put("method", request.method().name());
-            log.error("received bad status code {}", status);
+            log.error("received bad status code");
         }
     }
 
