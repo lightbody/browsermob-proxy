@@ -47,7 +47,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     }
 
     private void prepareStatsDMetrics(int status) {
-        if (status > 0 || status == 0) {
+        if (status > 399 || status == 0) {
             String metric;
             HttpRequest request = HTTP_REQUEST_STORAGE.get();
             String url = getFullUrl(request);
