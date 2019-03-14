@@ -1,13 +1,7 @@
 package net.lightbody.bmp.filters;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.*;
 import net.lightbody.bmp.proxy.BlacklistEntry;
 
 import java.util.Collection;
@@ -38,15 +32,15 @@ public class BlacklistFilter extends HttpsAwareFiltersAdapter {
             String url = getFullUrl(httpRequest);
 
             for (BlacklistEntry entry : blacklistedUrls) {
-                if (HttpMethod.CONNECT.equals(httpRequest.getMethod()) && entry.getHttpMethodPattern() == null) {
+                if (HttpMethod.CONNECT.equals(httpRequest.method()) && entry.getHttpMethodPattern() == null) {
                     // do not allow CONNECTs to be blacklisted unless a method pattern is explicitly specified
                     continue;
                 }
 
-                if (entry.matches(url, httpRequest.getMethod().name())) {
+                if (entry.matches(url, httpRequest.method().name())) {
                     HttpResponseStatus status = HttpResponseStatus.valueOf(entry.getStatusCode());
                     HttpResponse resp = new DefaultFullHttpResponse(httpRequest.getProtocolVersion(), status);
-                    HttpHeaders.setContentLength(resp, 0L);
+                    HttpUtil.setContentLength(resp, 0L);
 
                     return resp;
                 }

@@ -11,8 +11,8 @@ public class HarResponse {
     private volatile int status;
     private volatile String statusText;
     private volatile String httpVersion;
-    private final List<HarCookie> cookies = new CopyOnWriteArrayList<HarCookie>();
-    private final List<HarNameValuePair> headers = new CopyOnWriteArrayList<HarNameValuePair>();
+    private final List<HarCookie> cookies = new CopyOnWriteArrayList<>();
+    private final List<HarNameValuePair> headers = new CopyOnWriteArrayList<>();
     private final HarContent content = new HarContent();
     private volatile String redirectURL = "";
 

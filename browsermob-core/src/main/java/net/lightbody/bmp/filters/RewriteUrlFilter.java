@@ -115,7 +115,7 @@ public class RewriteUrlFilter extends HttpsAwareFiltersAdapter {
                     } else {
                         // only modify the Host header if it already exists
                         if (httpRequest.headers().contains(HttpHeaderNames.HOST)) {
-                            HttpHeaders.setHost(httpRequest, modifiedHostAndPort);
+                            httpRequest.headers().set(HttpHeaderNames.HOST, modifiedHostAndPort);
                         }
                     }
                 }

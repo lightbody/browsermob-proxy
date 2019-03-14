@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapMaker;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import net.lightbody.bmp.client.ClientUtil;
@@ -18,25 +18,13 @@ import net.lightbody.bmp.mitm.TrustSource;
 import net.lightbody.bmp.mitm.keys.ECKeyGenerator;
 import net.lightbody.bmp.mitm.keys.RSAKeyGenerator;
 import net.lightbody.bmp.mitm.manager.ImpersonatingMitmManager;
-import net.lightbody.bmp.proxy.ActivityMonitor;
-import net.lightbody.bmp.proxy.BlacklistEntry;
-import net.lightbody.bmp.proxy.CaptureType;
-import net.lightbody.bmp.proxy.RewriteRule;
-import net.lightbody.bmp.proxy.Whitelist;
+import net.lightbody.bmp.proxy.*;
 import net.lightbody.bmp.proxy.auth.AuthType;
 import net.lightbody.bmp.proxy.dns.AdvancedHostResolver;
 import net.lightbody.bmp.proxy.dns.DelegatingHostResolver;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import net.lightbody.bmp.util.BrowserMobProxyUtil;
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
-import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersSource;
-import org.littleshoot.proxy.HttpFiltersSourceAdapter;
-import org.littleshoot.proxy.HttpProxyServer;
-import org.littleshoot.proxy.HttpProxyServerBootstrap;
-import org.littleshoot.proxy.MitmManager;
+import org.littleshoot.proxy.*;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
@@ -45,16 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -320,28 +299,25 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
             // chained proxy after the proxy is started.
             bootstrappedWithDefaultChainedProxy.set(true);
 
-            bootstrap.withChainProxyManager(new ChainedProxyManager() {
-                @Override
-                public void lookupChainedProxies(HttpRequest httpRequest, Queue<ChainedProxy> chainedProxies) {
-                    final InetSocketAddress upstreamProxy = upstreamProxyAddress;
-                    if (upstreamProxy != null) {
-                        chainedProxies.add(new ChainedProxyAdapter() {
-                            @Override
-                            public InetSocketAddress getChainedProxyAddress() {
-                                return upstreamProxy;
-                            }
+            bootstrap.withChainProxyManager((httpRequest, chainedProxies) -> {
+                final InetSocketAddress upstreamProxy = upstreamProxyAddress;
+                if (upstreamProxy != null) {
+                    chainedProxies.add(new ChainedProxyAdapter() {
+                        @Override
+                        public InetSocketAddress getChainedProxyAddress() {
+                            return upstreamProxy;
+                        }
 
-                            @Override
-                            public void filterRequest(HttpObject httpObject) {
-                                String chainedProxyAuth = chainedProxyCredentials;
-                                if (chainedProxyAuth != null) {
-                                    if (httpObject instanceof HttpRequest) {
-                                        HttpHeaders.addHeader((HttpRequest) httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
-                                    }
+                        @Override
+                        public void filterRequest(HttpObject httpObject) {
+                            String chainedProxyAuth = chainedProxyCredentials;
+                            if (chainedProxyAuth != null) {
+                                if (httpObject instanceof HttpRequest) {
+                                    ((HttpRequest) httpObject).headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             });
         }

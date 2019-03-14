@@ -1,9 +1,6 @@
 package net.lightbody.bmp.util;
 
-import io.netty.handler.codec.http.FullHttpMessage;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.*;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,22 +18,22 @@ public class HttpObjectUtil {
      * Replaces the entity body of the message with the specified contents. Encodes the message contents according to charset in the message's
      * Content-Type header, or uses {@link BrowserMobHttpUtil#DEFAULT_HTTP_CHARSET} if none is specified.
      * <b>Note:</b> If the charset of the message is not supported on this platform, this will throw an {@link java.nio.charset.UnsupportedCharsetException}.
-     *
+     * <p>
      * TODO: Currently this method only works for FullHttpMessages, since it must modify the Content-Length header; determine if this may be applied to chunked messages as well
      *
-     * @param message the HTTP message to manipulate
+     * @param message     the HTTP message to manipulate
      * @param newContents the new entity body contents
      * @throws java.nio.charset.UnsupportedCharsetException if the charset in the message is not supported on this platform
      */
     public static void replaceTextHttpEntityBody(FullHttpMessage message, String newContents) {
         // get the content type for this message so we can encode the newContents into a byte stream appropriately
-        String contentTypeHeader = message.headers().get(HttpHeaders.Names.CONTENT_TYPE);
+        String contentTypeHeader = message.headers().get(HttpHeaderNames.CONTENT_TYPE);
 
         Charset messageCharset;
         try {
             messageCharset = BrowserMobHttpUtil.readCharsetInContentTypeHeader(contentTypeHeader);
         } catch (UnsupportedCharsetException e) {
-            java.nio.charset.UnsupportedCharsetException cause = e.getUnsupportedCharsetExceptionCause() ;
+            java.nio.charset.UnsupportedCharsetException cause = e.getUnsupportedCharsetExceptionCause();
             log.error("Found unsupported character set in Content-Type header '{}' while attempting to replace contents of HTTP message.", contentTypeHeader, cause);
 
             throw cause;
@@ -56,7 +53,7 @@ public class HttpObjectUtil {
      * Replaces an HTTP entity body with the specified binary contents.
      * TODO: Currently this method only works for FullHttpMessages, since it must modify the Content-Length header; determine if this may be applied to chunked messages as well
      *
-     * @param message the HTTP message to manipulate
+     * @param message           the HTTP message to manipulate
      * @param newBinaryContents the new entity body contents
      */
     public static void replaceBinaryHttpEntityBody(FullHttpMessage message, byte[] newBinaryContents) {
@@ -66,7 +63,7 @@ public class HttpObjectUtil {
         message.content().writeBytes(newBinaryContents);
 
         // update the Content-Length header, since the size may have changed
-        message.headers().set(HttpHeaders.Names.CONTENT_LENGTH, newBinaryContents.length);
+        message.headers().set(HttpHeaderNames.CONTENT_LENGTH, newBinaryContents.length);
     }
 
     /**
@@ -74,7 +71,7 @@ public class HttpObjectUtil {
      * the character set is not specified or is unknown, you still must specify a suitable default charset (see {@link BrowserMobHttpUtil#DEFAULT_HTTP_CHARSET}).
      *
      * @param httpContent HTTP content object to extract the entity body from
-     * @param charset character set of the entity body
+     * @param charset     character set of the entity body
      * @return String representation of the entity body
      * @throws IllegalArgumentException if the charset is null
      */
@@ -105,7 +102,7 @@ public class HttpObjectUtil {
             // to alert the client code.
             java.nio.charset.UnsupportedCharsetException cause = e.getUnsupportedCharsetExceptionCause();
 
-            String contentTypeHeader = HttpHeaders.getHeader(httpMessage, HttpHeaders.Names.CONTENT_TYPE);
+            String contentTypeHeader = httpMessage.headers().get(HttpHeaderNames.CONTENT_TYPE);
             log.error("Cannot retrieve text contents of message because HTTP message declares a character set that is not supported on this platform. Content type header: {}.", contentTypeHeader, cause);
 
             throw cause;
@@ -124,7 +121,7 @@ public class HttpObjectUtil {
      * @throws UnsupportedCharsetException if there is a charset specified in the content-type header, but it is not supported
      */
     public static Charset getCharsetFromMessage(HttpMessage httpMessage) throws UnsupportedCharsetException {
-        String contentTypeHeader = HttpHeaders.getHeader(httpMessage, HttpHeaders.Names.CONTENT_TYPE);
+        String contentTypeHeader = httpMessage.headers().get(HttpHeaderNames.CONTENT_TYPE);
 
         Charset charset = BrowserMobHttpUtil.readCharsetInContentTypeHeader(contentTypeHeader);
         if (charset == null) {

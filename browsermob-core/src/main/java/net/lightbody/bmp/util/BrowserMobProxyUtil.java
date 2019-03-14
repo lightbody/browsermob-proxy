@@ -33,19 +33,14 @@ public class BrowserMobProxyUtil {
     /**
      * Singleton version string loader.
      */
-    private static final Supplier<String> version = Suppliers.memoize(new Supplier<String>() {
-        @Override
-        public String get() {
-            return readVersionFileOnClasspath();
-        }
-    });
+    private static final Supplier<String> version = Suppliers.memoize(BrowserMobProxyUtil::readVersionFileOnClasspath);
 
     /**
      * Copies {@link HarEntry} and {@link HarPage} references from the specified har to a new har copy, up to and including
      * the specified pageRef. Does not perform a "deep copy", so any subsequent modification to the entries or pages will
      * be reflected in the copied har.
      *
-     * @param har existing har to copy
+     * @param har     existing har to copy
      * @param pageRef last page ID to copy
      * @return copy of a {@link Har} with entries and pages from the original har, or null if the input har is null
      */
@@ -59,7 +54,7 @@ public class BrowserMobProxyUtil {
         }
 
         // collect the page refs that need to be copied to new har copy.
-        Set<String> pageRefsToCopy = new HashSet<String>();
+        Set<String> pageRefsToCopy = new HashSet<>();
 
         for (HarPage page : har.getLog().getPages()) {
             pageRefsToCopy.add(page.getId());
