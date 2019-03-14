@@ -42,25 +42,33 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
         if (HttpResponse.class.isAssignableFrom(httpObject.getClass())) {
             HttpResponse httpResponse = (HttpResponse) httpObject;
             int status = httpResponse.status().code();
-            if (status > 399 || status == 0) {
-                String metric;
-                HttpRequest request = HTTP_REQUEST_STORAGE.pop();
-                String url = getFullUrl(request);
-                if (status >= 500) {
-                    MDC.put("caller", "mobproxy");
-                    MDC.put("http_response_code", String.valueOf(status));
-                    MDC.put("http_host", url);
-                    MDC.put("request_details", request.toString());
-                    MDC.put("method", request.method().name());
-                    log.error("received bad status code {}", status);
-                }
-                metric = getProxyPrefix().concat(
-                        prepareMetric(url)).concat(String.format(".%s", status));
-                client.increment(metric);
-                HTTP_REQUEST_STORAGE.clear();
-            }
+            prepareStatsDMetrics(status);
         }
         return super.serverToProxyResponse(httpObject);
+    }
+
+    private void prepareStatsDMetrics(int status) {
+        if (status > 399 || status == 0) {
+            String metric;
+            HttpRequest request = HTTP_REQUEST_STORAGE.pop();
+            String url = getFullUrl(request);
+            logFailedRequestIfRequired(status, request, url);
+            metric = getProxyPrefix().concat(
+                    prepareMetric(url)).concat(String.format(".%s", status));
+            client.increment(metric);
+            HTTP_REQUEST_STORAGE.clear();
+        }
+    }
+
+    private void logFailedRequestIfRequired(int status, HttpRequest request, String url) {
+        if (status >= 500) {
+            MDC.put("caller", "mobproxy");
+            MDC.put("http_response_code", String.valueOf(status));
+            MDC.put("http_host", url);
+            MDC.put("request_details", request.toString());
+            MDC.put("method", request.method().name());
+            log.error("received bad status code {}", status);
+        }
     }
 
     public static String getStatsDHost() {
