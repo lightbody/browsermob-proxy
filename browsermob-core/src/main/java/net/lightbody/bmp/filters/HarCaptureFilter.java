@@ -6,13 +6,7 @@ import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
@@ -458,9 +452,9 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         // force binary if the content encoding is not supported
         boolean forceBinary = false;
 
-        String contentType = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.CONTENT_TYPE);
+        String contentType = httpResponse.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (contentType == null) {
-            log.warn("No content type specified in response from {}. Content will be treated as {}", originalRequest.getUri(), BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE);
+            log.warn("No content type specified in response from {}. Content will be treated as {}", originalRequest.uri(), BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE);
             contentType = BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE;
         }
 
@@ -496,7 +490,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponse(HttpResponse httpResponse) {
-        HarResponse response = new HarResponse(httpResponse.getStatus().code(), httpResponse.getStatus().reasonPhrase(), httpResponse.getProtocolVersion().text());
+        HarResponse response = new HarResponse(httpResponse.status().code(), httpResponse.status().reasonPhrase(), httpResponse.protocolVersion().text());
         harEntry.setResponse(response);
 
         captureResponseHeaderSize(httpResponse);
@@ -517,7 +511,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponseMimeType(HttpResponse httpResponse) {
-        String contentType = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.CONTENT_TYPE);
+        String contentType = httpResponse.headers().get(HttpHeaderNames.CONTENT_TYPE);
         // don't set the mimeType to null, since mimeType is a required field
         if (contentType != null) {
             harEntry.getResponse().getContent().setMimeType(contentType);
@@ -525,7 +519,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponseCookies(HttpResponse httpResponse) {
-        List<String> setCookieHeaders = httpResponse.headers().getAll(HttpHeaders.Names.SET_COOKIE);
+        List<String> setCookieHeaders = httpResponse.headers().getAll(HttpHeaderNames.SET_COOKIE);
         if (setCookieHeaders == null) {
             return;
         }
@@ -563,7 +557,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponseHeaderSize(HttpResponse httpResponse) {
-        String statusLine = httpResponse.getProtocolVersion().toString() + ' ' + httpResponse.getStatus().toString();
+        String statusLine = httpResponse.protocolVersion().toString() + ' ' + httpResponse.status().toString();
         // +2 => CRLF after status line, +4 => header/data separation
         long responseHeadersSize = statusLine.length() + 6;
         HttpHeaders headers = httpResponse.headers();
@@ -580,7 +574,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureRedirectUrl(HttpResponse httpResponse) {
-        String locationHeaderValue = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.LOCATION);
+        String locationHeaderValue = httpResponse.headers().get(HttpHeaderNames.LOCATION);
         if (locationHeaderValue != null) {
             harEntry.getResponse().setRedirectURL(locationHeaderValue);
         }

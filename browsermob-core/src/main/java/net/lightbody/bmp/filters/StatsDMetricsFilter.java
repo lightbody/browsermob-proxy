@@ -39,7 +39,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
 
     @Override
     public HttpObject serverToProxyResponse(HttpObject httpObject) {
-        if (httpObject instanceof HttpResponse) {
+        if (HttpResponse.class.isAssignableFrom(httpObject.getClass())) {
             HttpResponse httpResponse = (HttpResponse) httpObject;
             int status = httpResponse.status().code();
             if (status > 399 || status == 0) {
