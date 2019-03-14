@@ -30,15 +30,15 @@ configuration:
           - name: caller
             mdc: "%X{caller}"
           - name: http_response_code
-            pattern: "%X{http_response_code}"
+            mdc: "%X{http_response_code}"
           - name: http_host
-            pattern: "%X{http_host}"
+            mdc: "%X{http_host}"
           - name: request_details
-            pattern: "%X{request_details}"
+            mdc: "%X{request_details}"
           - name: method
-            pattern: "%X{method}"
-          - name: caller
-            pattern: "%X{caller}"
+            mdc: "%X{method}"
+          - name: response
+            pattern: "%X{response}"
 
 
   loggers:

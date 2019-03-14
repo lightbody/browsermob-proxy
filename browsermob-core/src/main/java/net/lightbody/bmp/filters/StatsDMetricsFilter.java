@@ -41,17 +41,17 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
         if (HttpResponse.class.isAssignableFrom(httpObject.getClass())) {
             HttpResponse httpResponse = (HttpResponse) httpObject;
             int status = httpResponse.status().code();
-            prepareStatsDMetrics(status);
+            prepareStatsDMetrics(status, (HttpResponse) httpObject);
         }
         return super.serverToProxyResponse(httpObject);
     }
 
-    private void prepareStatsDMetrics(int status) {
+    private void prepareStatsDMetrics(int status, HttpResponse httpResponse) {
         if (status > 399 || status == 0) {
             String metric;
             HttpRequest request = HTTP_REQUEST_STORAGE.get();
             String url = getFullUrl(request);
-            logFailedRequestIfRequired(status, request, url);
+            logFailedRequestIfRequired(status, httpResponse, request, url);
             metric = getProxyPrefix().concat(
                     prepareMetric(url)).concat(String.format(".%s", status));
             client.increment(metric);
@@ -59,13 +59,14 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
         }
     }
 
-    private void logFailedRequestIfRequired(int status, HttpRequest request, String url) {
+    private void logFailedRequestIfRequired(int status, HttpResponse response, HttpRequest request, String url) {
         if (status >= 500) {
             MDC.put("caller", "mobproxy");
             MDC.put("http_response_code", String.valueOf(status));
             MDC.put("http_host", url);
             MDC.put("request_details", request.toString());
             MDC.put("method", request.method().name());
+            MDC.put("response", response.toString());
             log.error("received bad status code");
         }
     }
