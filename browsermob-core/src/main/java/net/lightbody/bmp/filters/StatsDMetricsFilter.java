@@ -36,13 +36,13 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
         if (HttpResponse.class.isAssignableFrom(httpObject.getClass())) {
             HttpResponse httpResponse = (HttpResponse) httpObject;
             int status = httpResponse.status().code();
-            prepareStatsDMetrics(status, (HttpResponse) httpObject);
+            prepareStatsDMetrics(status);
         }
         return super.serverToProxyResponse(httpObject);
     }
 
-    private void prepareStatsDMetrics(int status, HttpResponse httpResponse) {
-        if (status > 0 || status == 0) {
+    private void prepareStatsDMetrics(int status) {
+        if (status > 399 || status == 0) {
             String metric;
             HttpRequest request = HTTP_REQUEST_STORAGE.get();
             String url = getFullUrl(request);
