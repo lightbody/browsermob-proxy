@@ -11,11 +11,11 @@ configuration:
         pattern: "[%-5level %date{ISO8601} %c{1}] %msg %xThrowable%n"
     gelf:
       - name: gelf
-        additionalFieldTypes: "caller=String,http_response_code=Integer,http_host=String,request_query=String,method=String"
         host: udp:graylog000.staging.hellofresh.io
         port: 12201
         filterStackTrace: true
         mdcProfiling: true
+        includeFullMdc: true
         version: 1.1
         originHost: "%host{fqdn}"
         maximumMessageSize: "8192"
@@ -38,7 +38,7 @@ configuration:
           - name: method
             mdc: "%X{method}"
           - name: response
-            pattern: "%X{response}"
+            mdc: "%X{response}"
 
 
   loggers:

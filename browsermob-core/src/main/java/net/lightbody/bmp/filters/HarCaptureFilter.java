@@ -22,10 +22,12 @@ import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.proxy.CaptureType;
+import net.lightbody.bmp.util.BeansJsonMapper;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -272,6 +274,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             harEntry.getResponse().setBodySize(responseBodySize.get());
         }
 
+        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
+
         return super.serverToProxyResponse(httpObject);
     }
 
@@ -302,6 +306,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
+        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
     /**
@@ -771,6 +776,17 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         }
     }
 
+    private void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
+        if (response.getStatus() >= 500 || response.getStatus() == 0) {
+            MDC.put("caller", "mobproxy");
+            MDC.put("http_response_code", String.valueOf(response.getStatus()));
+            MDC.put("http_host", request.getUrl());
+            MDC.put("request_details", BeansJsonMapper.getJsonString(request));
+            MDC.put("method", request.getMethod());
+            MDC.put("response", BeansJsonMapper.getJsonString(response));
+            log.error("received bad status code");
+        }
+    }
 
     private void createStatsDClient() {
         if (statsDClient.get() == null) {
