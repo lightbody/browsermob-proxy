@@ -306,7 +306,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
-        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
     /**
