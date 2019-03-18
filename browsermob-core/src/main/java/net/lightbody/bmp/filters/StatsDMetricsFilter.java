@@ -54,11 +54,11 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     }
 
 
-    public static String getStatsDHost() {
-        return StringUtils.isEmpty(System.getenv("STATSD_HOST")) ? "graphite000.tools.hellofresh.io" : System.getenv("STATSD_HOST");
+    static String getStatsDHost() {
+        return StringUtils.isEmpty(System.getenv("STATSD_HOST")) ? "localhost" : System.getenv("STATSD_HOST");
     }
 
-    public static int getStatsDPort() {
+    static int getStatsDPort() {
         return StringUtils.isEmpty(System.getenv("STATSD_PORT")) ? 8125 : NumberUtils.toInt(System.getenv("STATSD_PORT"));
     }
 
