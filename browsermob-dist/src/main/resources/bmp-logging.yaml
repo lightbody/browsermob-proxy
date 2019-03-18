@@ -16,6 +16,7 @@ configuration:
         filterStackTrace: true
         mdcProfiling: true
         includeFullMdc: true
+        facility: mobproxy
         version: 1.1
         originHost: "%host{fqdn}"
         maximumMessageSize: "8192"
@@ -27,18 +28,6 @@ configuration:
             pattern: "%host"
           - name: timestamp
             pattern: "%date{ISO8601}"
-          - name: caller
-            mdc: "%X{caller}"
-          - name: http_response_code
-            mdc: "%X{http_response_code}"
-          - name: http_host
-            mdc: "%X{http_host}"
-          - name: request_details
-            mdc: "%X{request_details}"
-          - name: method
-            mdc: "%X{method}"
-          - name: response
-            mdc: "%X{response}"
 
 
   loggers:
