@@ -11,7 +11,7 @@ configuration:
         pattern: "[%-5level %date{ISO8601} %c{1}] %msg %xThrowable%n"
     gelf:
       - name: gelf
-        host: tcp:graylog-input.staging.hellofresh.io
+        host: tcp:localhost
         port: 12204
         filterStackTrace: true
         mdcProfiling: true
