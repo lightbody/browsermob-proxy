@@ -364,7 +364,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
                     log.trace("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
                 }
             } else {
-                log.warn("Unable to identify host from request uri: {}", modifiedHttpRequest.getUri());
+                log.warn("Unable to identify host from request uri: {}", modifiedHttpRequest.uri());
             }
         }
     }
@@ -379,7 +379,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
     private HarRequest createRequestForFailedConnect(HttpRequest httpConnectRequest) {
         String url = getFullUrl(httpConnectRequest);
 
-        return new HarRequest(httpConnectRequest.getMethod().toString(), url, httpConnectRequest.getProtocolVersion().text());
+        return new HarRequest(httpConnectRequest.method().toString(), url, httpConnectRequest.protocolVersion().text());
     }
 
     /**

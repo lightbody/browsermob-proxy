@@ -11,12 +11,10 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Stack;
 
 public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     private StatsDClient client;
-    private static Stack<String> HTTP_RESPONSE_STACK = new Stack<>();
-
+    private static InheritableThreadLocal<HttpRequest> HTTP_REQUEST_STORAGE = new InheritableThreadLocal<>();
 
     public StatsDMetricsFilter(HttpRequest originalRequest, ChannelHandlerContext ctx) {
         super(originalRequest, ctx);
@@ -27,8 +25,7 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         if (httpObject instanceof HttpRequest) {
             HttpRequest httpRequest = (HttpRequest) httpObject;
-            String url = getFullUrl(httpRequest);
-            HTTP_RESPONSE_STACK.push(url);
+            HTTP_REQUEST_STORAGE.set(httpRequest);
         }
         return null;
     }
@@ -36,27 +33,32 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
 
     @Override
     public HttpObject serverToProxyResponse(HttpObject httpObject) {
-        if (httpObject instanceof HttpResponse) {
+        if (HttpResponse.class.isAssignableFrom(httpObject.getClass())) {
             HttpResponse httpResponse = (HttpResponse) httpObject;
-
-            int status = httpResponse.getStatus().code();
-            if (status > 399 || status == 0) {
-                String metric;
-                String url = HTTP_RESPONSE_STACK.pop();
-                metric = getProxyPrefix().concat(
-                        prepareMetric(url)).concat(String.format(".%s", status));
-                client.increment(metric);
-                HTTP_RESPONSE_STACK.clear();
-            }
+            int status = httpResponse.status().code();
+            prepareStatsDMetrics(status);
         }
         return super.serverToProxyResponse(httpObject);
     }
 
-    public static String getStatsDHost() {
-        return StringUtils.isEmpty(System.getenv("STATSD_HOST")) ? "graphite000.tools.hellofresh.io" : System.getenv("STATSD_HOST");
+    private void prepareStatsDMetrics(int status) {
+        if (status > 399 || status == 0) {
+            String metric;
+            HttpRequest request = HTTP_REQUEST_STORAGE.get();
+            String url = getFullUrl(request);
+            metric = getProxyPrefix().concat(
+                    prepareMetric(url)).concat(String.format(".%s", status));
+            client.increment(metric);
+            HTTP_REQUEST_STORAGE.remove();
+        }
     }
 
-    public static int getStatsDPort() {
+
+    static String getStatsDHost() {
+        return StringUtils.isEmpty(System.getenv("STATSD_HOST")) ? "localhost" : System.getenv("STATSD_HOST");
+    }
+
+    static int getStatsDPort() {
         return StringUtils.isEmpty(System.getenv("STATSD_PORT")) ? 8125 : NumberUtils.toInt(System.getenv("STATSD_PORT"));
     }
 

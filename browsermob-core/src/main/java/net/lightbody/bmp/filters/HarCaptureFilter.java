@@ -6,13 +6,7 @@ import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
@@ -28,10 +22,12 @@ import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.proxy.CaptureType;
+import net.lightbody.bmp.util.BeansJsonMapper;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -278,6 +274,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             harEntry.getResponse().setBodySize(responseBodySize.get());
         }
 
+        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
+
         return super.serverToProxyResponse(httpObject);
     }
 
@@ -323,7 +321,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         // the full URL consists of the scheme + host + port (if non-standard) + path + query params + fragment.
         String url = getFullUrl(httpRequest);
 
-        return new HarRequest(httpRequest.getMethod().toString(), url, httpRequest.getProtocolVersion().text());
+        return new HarRequest(httpRequest.method().toString(), url, httpRequest.protocolVersion().text());
     }
 
     //TODO: add unit tests for these utility-like capture() methods
@@ -331,7 +329,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     protected void captureQueryParameters(HttpRequest httpRequest) {
         // capture query parameters. it is safe to assume the query string is UTF-8, since it "should" be in US-ASCII (a subset of UTF-8),
         // but sometimes does include UTF-8 characters.
-        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(httpRequest.getUri(), StandardCharsets.UTF_8);
+        QueryStringDecoder queryStringDecoder = new QueryStringDecoder(httpRequest.uri(), StandardCharsets.UTF_8);
 
         try {
             for (Map.Entry<String, List<String>> entry : queryStringDecoder.parameters().entrySet()) {
@@ -342,13 +340,13 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         } catch (IllegalArgumentException e) {
             // QueryStringDecoder will throw an IllegalArgumentException if it cannot interpret a query string. rather than cause the entire request to
             // fail by propagating the exception, simply skip the query parameter capture.
-            harEntry.setComment("Unable to decode query parameters on URI: " + httpRequest.getUri());
-            log.info("Unable to decode query parameters on URI: " + httpRequest.getUri(), e);
+            harEntry.setComment("Unable to decode query parameters on URI: " + httpRequest.uri());
+            log.info("Unable to decode query parameters on URI: " + httpRequest.uri(), e);
         }
     }
 
     protected void captureRequestHeaderSize(HttpRequest httpRequest) {
-        String requestLine = httpRequest.getMethod().toString() + ' ' + httpRequest.getUri() + ' ' + httpRequest.getProtocolVersion().toString();
+        String requestLine = httpRequest.method().toString() + ' ' + httpRequest.uri() + ' ' + httpRequest.protocolVersion().toString();
         // +2 => CRLF after status line, +4 => header/data separation
         long requestHeadersSize = requestLine.length() + 6;
 
@@ -359,7 +357,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureRequestCookies(HttpRequest httpRequest) {
-        String cookieHeader = httpRequest.headers().get(HttpHeaders.Names.COOKIE);
+        String cookieHeader = httpRequest.headers().get(HttpHeaderNames.COOKIE);
         if (cookieHeader == null) {
             return;
         }
@@ -399,9 +397,9 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             return;
         }
 
-        String contentType = HttpHeaders.getHeader(httpRequest, HttpHeaders.Names.CONTENT_TYPE);
+        String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (contentType == null) {
-            log.warn("No content type specified in request to {}. Content will be treated as {}", httpRequest.getUri(), BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE);
+            log.warn("No content type specified in request to {}. Content will be treated as {}", httpRequest.uri(), BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE);
             contentType = BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE;
         }
 
@@ -411,24 +409,20 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         postData.setMimeType(contentType);
 
         boolean urlEncoded;
-        if (contentType.startsWith(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
-            urlEncoded = true;
-        } else {
-            urlEncoded = false;
-        }
+        urlEncoded = contentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
 
         Charset charset;
         try {
             charset = BrowserMobHttpUtil.readCharsetInContentTypeHeader(contentType);
         } catch (UnsupportedCharsetException e) {
-            log.warn("Found unsupported character set in Content-Type header '{}' in HTTP request to {}. Content will not be captured in HAR.", contentType, httpRequest.getUri(), e);
+            log.warn("Found unsupported character set in Content-Type header '{}' in HTTP request to {}. Content will not be captured in HAR.", contentType, httpRequest.uri(), e);
             return;
         }
 
         if (charset == null) {
             // no charset specified, so use the default -- but log a message since this might not encode the data correctly
             charset = BrowserMobHttpUtil.DEFAULT_HTTP_CHARSET;
-            log.debug("No charset specified; using charset {} to decode contents to {}", charset, httpRequest.getUri());
+            log.debug("No charset specified; using charset {} to decode contents to {}", charset, httpRequest.uri());
         }
 
         if (urlEncoded) {
@@ -458,9 +452,9 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         // force binary if the content encoding is not supported
         boolean forceBinary = false;
 
-        String contentType = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.CONTENT_TYPE);
+        String contentType = httpResponse.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (contentType == null) {
-            log.warn("No content type specified in response from {}. Content will be treated as {}", originalRequest.getUri(), BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE);
+            log.warn("No content type specified in response from {}. Content will be treated as {}", originalRequest.uri(), BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE);
             contentType = BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE;
         }
 
@@ -474,14 +468,14 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         try {
             charset = BrowserMobHttpUtil.readCharsetInContentTypeHeader(contentType);
         } catch (UnsupportedCharsetException e) {
-            log.warn("Found unsupported character set in Content-Type header '{}' in HTTP response from {}. Content will not be captured in HAR.", contentType, originalRequest.getUri(), e);
+            log.warn("Found unsupported character set in Content-Type header '{}' in HTTP response from {}. Content will not be captured in HAR.", contentType, originalRequest.uri(), e);
             return;
         }
 
         if (charset == null) {
             // no charset specified, so use the default -- but log a message since this might not encode the data correctly
             charset = BrowserMobHttpUtil.DEFAULT_HTTP_CHARSET;
-            log.debug("No charset specified; using charset {} to decode contents from {}", charset, originalRequest.getUri());
+            log.debug("No charset specified; using charset {} to decode contents from {}", charset, originalRequest.uri());
         }
 
         if (!forceBinary && BrowserMobHttpUtil.hasTextualContent(contentType)) {
@@ -496,7 +490,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponse(HttpResponse httpResponse) {
-        HarResponse response = new HarResponse(httpResponse.getStatus().code(), httpResponse.getStatus().reasonPhrase(), httpResponse.getProtocolVersion().text());
+        HarResponse response = new HarResponse(httpResponse.status().code(), httpResponse.status().reasonPhrase(), httpResponse.protocolVersion().text());
         harEntry.setResponse(response);
 
         captureResponseHeaderSize(httpResponse);
@@ -517,7 +511,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponseMimeType(HttpResponse httpResponse) {
-        String contentType = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.CONTENT_TYPE);
+        String contentType = httpResponse.headers().get(HttpHeaderNames.CONTENT_TYPE);
         // don't set the mimeType to null, since mimeType is a required field
         if (contentType != null) {
             harEntry.getResponse().getContent().setMimeType(contentType);
@@ -525,7 +519,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponseCookies(HttpResponse httpResponse) {
-        List<String> setCookieHeaders = httpResponse.headers().getAll(HttpHeaders.Names.SET_COOKIE);
+        List<String> setCookieHeaders = httpResponse.headers().getAll(HttpHeaderNames.SET_COOKIE);
         if (setCookieHeaders == null) {
             return;
         }
@@ -563,7 +557,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureResponseHeaderSize(HttpResponse httpResponse) {
-        String statusLine = httpResponse.getProtocolVersion().toString() + ' ' + httpResponse.getStatus().toString();
+        String statusLine = httpResponse.protocolVersion().toString() + ' ' + httpResponse.status().toString();
         // +2 => CRLF after status line, +4 => header/data separation
         long responseHeadersSize = statusLine.length() + 6;
         HttpHeaders headers = httpResponse.headers();
@@ -580,7 +574,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected void captureRedirectUrl(HttpResponse httpResponse) {
-        String locationHeaderValue = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.LOCATION);
+        String locationHeaderValue = httpResponse.headers().get(HttpHeaderNames.LOCATION);
         if (locationHeaderValue != null) {
             harEntry.getResponse().setRedirectURL(locationHeaderValue);
         }
@@ -640,7 +634,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
                 log.trace("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
             }
         } else {
-            log.warn("Unable to identify host from request uri: {}", httpRequest.getUri());
+            log.warn("Unable to identify host from request uri: {}", httpRequest.uri());
         }
     }
 
@@ -781,6 +775,17 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         }
     }
 
+    private void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
+        if (response.getStatus() >= 500 || response.getStatus() == 0) {
+            MDC.put("caller", "mobproxy");
+            MDC.put("http_response_code", String.valueOf(response.getStatus()));
+            MDC.put("http_host", request.getUrl());
+            MDC.put("request_details", BeansJsonMapper.getJsonString(request));
+            MDC.put("method", request.getMethod());
+            MDC.put("response", BeansJsonMapper.getJsonString(response));
+            log.error("received bad status code");
+        }
+    }
 
     private void createStatsDClient() {
         if (statsDClient.get() == null) {

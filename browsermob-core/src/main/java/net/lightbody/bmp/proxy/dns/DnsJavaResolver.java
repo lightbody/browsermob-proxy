@@ -108,7 +108,7 @@ public class DnsJavaResolver extends AbstractHostNameRemapper implements Advance
         }
 
         // convert the records we found into IPv4/IPv6 InetAddress objects
-        List<InetAddress> addrList = new ArrayList<InetAddress>(records.length);
+        List<InetAddress> addrList = new ArrayList<>(records.length);
 
         // the InetAddresses returned by dnsjava include the trailing dot, e.g. "www.google.com." -- use the passed-in (or remapped) host value instead
         for (Record record : records) {

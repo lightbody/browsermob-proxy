@@ -10,9 +10,9 @@ public class HarRequest {
     private volatile String method;
     private volatile String url;
     private volatile String httpVersion;
-    private final List<HarCookie> cookies = new CopyOnWriteArrayList<HarCookie>();
-    private final List<HarNameValuePair> headers = new CopyOnWriteArrayList<HarNameValuePair>();
-    private final List<HarNameValuePair> queryString = new CopyOnWriteArrayList<HarNameValuePair>();
+    private final List<HarCookie> cookies = new CopyOnWriteArrayList<>();
+    private final List<HarNameValuePair> headers = new CopyOnWriteArrayList<>();
+    private final List<HarNameValuePair> queryString = new CopyOnWriteArrayList<>();
     private volatile HarPostData postData;
     private volatile long headersSize; // Odd grammar in spec
     private volatile long bodySize;

@@ -38,8 +38,8 @@ class WhitelistTest extends MockServerTest {
     void testWhitelistCannotShortCircuitCONNECT() {
         HttpRequest request = mock(HttpRequest.class)
         when(request.getMethod()).thenReturn(HttpMethod.CONNECT)
-        when(request.getUri()).thenReturn('somedomain.com:443')
-        when(request.getProtocolVersion()).thenReturn(HttpVersion.HTTP_1_1)
+        when(request.uri()).thenReturn('somedomain.com:443')
+        when(request.protocolVersion()).thenReturn(HttpVersion.HTTP_1_1)
 
         // create a whitelist filter that whitelists no requests (i.e., all requests should return the specified HTTP 500 status code)
         WhitelistFilter filter = new WhitelistFilter(request, null, true, 500, [])

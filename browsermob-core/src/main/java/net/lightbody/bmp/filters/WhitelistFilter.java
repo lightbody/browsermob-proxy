@@ -1,12 +1,7 @@
 package net.lightbody.bmp.filters;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.*;
 import org.littleshoot.proxy.impl.ProxyUtils;
 
 import java.util.Collection;
@@ -23,7 +18,7 @@ public class WhitelistFilter extends HttpsAwareFiltersAdapter {
     private final int whitelistResponseCode;
     private final Collection<Pattern> whitelistUrls;
 
-    public WhitelistFilter(HttpRequest originalRequest, ChannelHandlerContext ctx, boolean whitelistEnabled,int whitelistResponseCode,
+    public WhitelistFilter(HttpRequest originalRequest, ChannelHandlerContext ctx, boolean whitelistEnabled, int whitelistResponseCode,
                            Collection<Pattern> whitelistUrls) {
         super(originalRequest, ctx);
 
@@ -63,8 +58,8 @@ public class WhitelistFilter extends HttpsAwareFiltersAdapter {
 
             if (!urlWhitelisted) {
                 HttpResponseStatus status = HttpResponseStatus.valueOf(whitelistResponseCode);
-                HttpResponse resp = new DefaultFullHttpResponse(httpRequest.getProtocolVersion(), status);
-                HttpHeaders.setContentLength(resp, 0L);
+                HttpResponse resp = new DefaultFullHttpResponse(httpRequest.protocolVersion(), status);
+                HttpUtil.setContentLength(resp, 0L);
 
                 return resp;
             }

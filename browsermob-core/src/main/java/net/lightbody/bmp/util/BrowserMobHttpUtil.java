@@ -245,14 +245,14 @@ public class BrowserMobHttpUtil {
      */
     public static String getRawPathAndParamsFromRequest(HttpRequest httpRequest) throws URISyntaxException {
         // if this request's URI contains a full URI (including scheme, host, etc.), strip away the non-path components
-        if (HttpUtil.startsWithHttpOrHttps(httpRequest.getUri())) {
-            return getRawPathAndParamsFromUri(httpRequest.getUri());
+        if (HttpUtil.startsWithHttpOrHttps(httpRequest.uri())) {
+            return getRawPathAndParamsFromUri(httpRequest.uri());
         } else {
             // to provide consistent validation behavior for URIs that contain a scheme and those that don't, attempt to parse
             // the URI, even though we discard the parsed URI object
-            new URI(httpRequest.getUri());
+            new URI(httpRequest.uri());
 
-            return httpRequest.getUri();
+            return httpRequest.uri();
         }
     }
 
@@ -284,7 +284,7 @@ public class BrowserMobHttpUtil {
      * @return true if the response is a redirect, otherwise false
      */
     public static boolean isRedirect(HttpResponse httpResponse) {
-        switch (httpResponse.getStatus().code()) {
+        switch (httpResponse.status().code()) {
             case 300:
             case 301:
             case 302:

@@ -38,9 +38,8 @@ public class NativeResolver extends AbstractHostNameRemapper implements Advanced
     @Override
     public Collection<InetAddress> resolveRemapped(String remappedHost) {
         try {
-            Collection<InetAddress> addresses = Arrays.asList(InetAddress.getAllByName(remappedHost));
+            return Arrays.asList(InetAddress.getAllByName(remappedHost));
 
-            return addresses;
         } catch (UnknownHostException e) {
             return Collections.emptyList();
         }
