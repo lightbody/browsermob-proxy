@@ -18,73 +18,79 @@ package net.lightbody.bmp.proxy.jetty.jetty.servlet;
 import net.lightbody.bmp.proxy.jetty.util.IO;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import java.io.IOException;
 import java.io.OutputStream;
 
 
-class ServletOut extends ServletOutputStream
-{
+class ServletOut extends ServletOutputStream {
     OutputStream _out;
 
     /* ------------------------------------------------------------ */
-    ServletOut(OutputStream out)
-    {
-        _out=out;
-    }
-    
-    /* ------------------------------------------------------------ */
-    public void write(int ch)
-        throws IOException
-    {
-        _out.write(ch);
-    }
-    
-    /* ------------------------------------------------------------ */
-    public void write(byte[]b)
-        throws IOException
-    {
-        _out.write(b);
-    }
-    
-    /* ------------------------------------------------------------ */
-    public void write(byte[]b,int o,int l)
-        throws IOException
-    {
-        _out.write(b,o,l);
+    ServletOut(OutputStream out) {
+        _out = out;
     }
 
     /* ------------------------------------------------------------ */
+    public void write(int ch)
+            throws IOException {
+        _out.write(ch);
+    }
+
+    /* ------------------------------------------------------------ */
+    @Override
+    public void write(byte[] b)
+            throws IOException {
+        _out.write(b);
+    }
+
+    /* ------------------------------------------------------------ */
+    @Override
+    public void write(byte[] b, int o, int l)
+            throws IOException {
+        _out.write(b, o, l);
+    }
+
+    /* ------------------------------------------------------------ */
+    @Override
     public void flush()
-        throws IOException
-    {
+            throws IOException {
         _out.flush();
     }
-    
+
     /* ------------------------------------------------------------ */
+    @Override
     public void close()
-        throws IOException
-    {
+            throws IOException {
         super.close();
         _out.close();
     }
-    
+
     /* ------------------------------------------------------------ */
-    public void disable()
-        throws IOException
-    {
-        _out=IO.getNullStream();
+    public void disable() {
+        _out = IO.getNullStream();
     }
 
     /* ------------------------------------------------------------ */
-    public void print(String s) throws IOException 
-    {
-         if (s!=null) write(s.getBytes());
+    @Override
+    public void print(String s) throws IOException {
+        if (s != null) write(s.getBytes());
     }
 
     /* ------------------------------------------------------------ */
-    public void println(String s) throws IOException 
-    {
-         if (s!=null) write(s.getBytes());     
-         write(IO.CRLF_BYTES);
+    @Override
+    public void println(String s) throws IOException {
+        if (s != null) write(s.getBytes());
+        write(IO.CRLF_BYTES);
+    }
+
+    @Override
+    public boolean isReady() {
+        return false;
+    }
+
+    @Override
+    public void setWriteListener(WriteListener writeListener) {
+
     }
 }

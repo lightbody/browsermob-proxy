@@ -51,7 +51,7 @@ public class BrowserMobHttpUtil {
      *     Likewise, special treatment of ISO-8859-1 has been removed from the
      *     Accept-Charset header field.
      * </pre>
-     *
+     * <p>
      * Technically, we would have to determine the charset on a per-content-type basis, but generally speaking, UTF-8 is a
      * pretty safe default. (NOTE: In the previous HTTP/1.1 spec, section 3.7.1, the default charset was defined as ISO-8859-1.)
      */
@@ -118,7 +118,7 @@ public class BrowserMobHttpUtil {
      *
      * @param fullMessage brotli byte stream to decompress
      * @return decompressed bytes
-    * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
+     * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
      */
     public static byte[] decompressBrotliContents(byte[] fullMessage) throws DecompressionException {
         InputStream brotliReader = null;
@@ -167,11 +167,11 @@ public class BrowserMobHttpUtil {
     public static boolean hasTextualContent(String contentType) {
         return contentType != null &&
                 (contentType.startsWith("text/") ||
-                contentType.startsWith("application/x-javascript") ||
-                contentType.startsWith("application/javascript")  ||
-                contentType.startsWith("application/json")  ||
-                contentType.startsWith("application/xml")  ||
-                contentType.startsWith("application/xhtml+xml")
+                        contentType.startsWith("application/x-javascript") ||
+                        contentType.startsWith("application/javascript") ||
+                        contentType.startsWith("application/json") ||
+                        contentType.startsWith("application/xml") ||
+                        contentType.startsWith("application/xhtml+xml")
                 );
     }
 
@@ -222,8 +222,8 @@ public class BrowserMobHttpUtil {
 
         MediaType mediaType;
         try {
-             mediaType = MediaType.parse(contentTypeHeader);
-        } catch (IllegalArgumentException e) {
+            mediaType = MediaType.parse(contentTypeHeader);
+        } catch (java.lang.IllegalArgumentException e) {
             log.info("Unable to parse Content-Type header: {}. Content-Type header will be ignored.", contentTypeHeader, e);
             return null;
         }
@@ -307,7 +307,7 @@ public class BrowserMobHttpUtil {
      * parsing the hostname, but makes no guarantees. In general, it should be validated externally, if necessary.
      *
      * @param hostWithPort string containing a hostname and optional port
-     * @param portNumber port to remove from the string
+     * @param portNumber   port to remove from the string
      * @return string with the specified port removed, or the original string if it did not contain the portNumber
      */
     public static String removeMatchingPort(String hostWithPort, int portNumber) {

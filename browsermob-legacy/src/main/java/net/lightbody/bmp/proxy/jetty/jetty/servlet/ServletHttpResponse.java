@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Locale;
 
 /* ------------------------------------------------------------ */
@@ -520,6 +521,26 @@ public class ServletHttpResponse implements HttpServletResponse
         _httpResponse.setReason(message);
     }
 
+    @Override
+    public int getStatus() {
+        return 0;
+    }
+
+    @Override
+    public String getHeader(String s) {
+        return null;
+    }
+
+    @Override
+    public Collection<String> getHeaders(String s) {
+        return null;
+    }
+
+    @Override
+    public Collection<String> getHeaderNames() {
+        return null;
+    }
+
 
     /* ------------------------------------------------------------ */
     public ServletOutputStream getOutputStream() 
@@ -594,7 +615,12 @@ public class ServletHttpResponse implements HttpServletResponse
         if (!isCommitted())
             setIntHeader(HttpFields.__ContentLength,len);
     }
-    
+
+    @Override
+    public void setContentLengthLong(long l) {
+
+    }
+
     /* ------------------------------------------------------------ */
     public String getContentType()
     {

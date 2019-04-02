@@ -35,12 +35,7 @@ public class MailingListIssuesTest extends LocalServerTest {
         assumeFalse(Boolean.getBoolean("bmp.use.littleproxy"));
 
         final boolean[] interceptorHit = {false};
-        proxy.addRequestInterceptor(new RequestInterceptor() {
-            @Override
-            public void process(BrowserMobHttpRequest request, Har har) {
-                interceptorHit[0] = true;
-            }
-        });
+        proxy.addRequestInterceptor((RequestInterceptor) (request, har) -> interceptorHit[0] = true);
 
         String body = IOUtils.toStringAndClose(client.execute(new HttpGet(getLocalServerHostnameAndPort() + "/a.txt")).getEntity().getContent());
 

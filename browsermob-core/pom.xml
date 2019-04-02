@@ -6,7 +6,7 @@
     <parent>
         <artifactId>browsermob-proxy</artifactId>
         <groupId>net.lightbody.bmp</groupId>
-        <version>2.1.20-SNAPSHOT</version>
+        <version>2.1.22-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,7 +14,7 @@
     <name>BrowserMob Proxy Core (LittleProxy) Module</name>
 
     <properties>
-        <unit-test-jetty.version>7.6.16.v20140903</unit-test-jetty.version>
+        <unit-test-jetty.version>9.4.15.v20190215</unit-test-jetty.version>
     </properties>
 
     <build>
@@ -42,7 +42,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
+                    <argLine>-Xmx1g</argLine>
                 </configuration>
             </plugin>
         </plugins>

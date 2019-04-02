@@ -17,78 +17,76 @@ package net.lightbody.bmp.proxy.jetty.jetty.servlet;
 
 import net.lightbody.bmp.proxy.jetty.http.HttpInputStream;
 
-import javax.servlet.ServletInputStream;
 import java.io.IOException;
 
 
-class ServletIn extends ServletInputStream
-{
+class ServletIn extends HttpInputStream {
     HttpInputStream _in;
 
     /* ------------------------------------------------------------ */
-    ServletIn(HttpInputStream in)
-    {
-        _in=in;
+    ServletIn(HttpInputStream in) {
+        super(in);
+        _in = in;
     }
-    
+
     /* ------------------------------------------------------------ */
+    @Override
     public int read()
-        throws IOException
-    {
+            throws IOException {
         return _in.read();
     }
-    
+
     /* ------------------------------------------------------------ */
-    public int read(byte b[]) throws IOException
-    {
+    @Override
+    public int read(byte b[]) throws IOException {
         return _in.read(b);
     }
-    
+
     /* ------------------------------------------------------------ */
-    public int read(byte b[], int off, int len) throws IOException
-    {    
-        return _in.read(b,off,len);
+    @Override
+    public int read(byte b[], int off, int len) throws IOException {
+        return _in.read(b, off, len);
     }
-    
+
     /* ------------------------------------------------------------ */
-    public long skip(long len) throws IOException
-    {
+    @Override
+    public long skip(long len) throws IOException {
         return _in.skip(len);
     }
-    
+
     /* ------------------------------------------------------------ */
+    @Override
     public int available()
-        throws IOException
-    {
+            throws IOException {
         return _in.available();
     }
-    
+
     /* ------------------------------------------------------------ */
+    @Override
     public void close()
-        throws IOException
-    {
+            throws IOException {
         _in.close();
     }
-    
+
     /* ------------------------------------------------------------ */
-    public boolean markSupported()
-    {
+    @Override
+    public boolean markSupported() {
         return _in.markSupported();
     }
-    
+
     /* ------------------------------------------------------------ */
+    @Override
     public void reset()
-        throws IOException
-    {
+            throws IOException {
         _in.reset();
     }
-    
+
     /* ------------------------------------------------------------ */
-    public void mark(int readlimit)
-    {
+    @Override
+    public void mark(int readlimit) {
         _in.mark(readlimit);
     }
-    
+
 }
 
 

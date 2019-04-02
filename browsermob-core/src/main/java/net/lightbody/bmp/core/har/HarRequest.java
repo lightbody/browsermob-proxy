@@ -1,6 +1,8 @@
 package net.lightbody.bmp.core.har;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -95,4 +97,41 @@ public class HarRequest {
         this.comment = comment;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        HarRequest that = (HarRequest) o;
+
+        return new EqualsBuilder()
+                .append(headersSize, that.headersSize)
+                .append(bodySize, that.bodySize)
+                .append(method, that.method)
+                .append(url, that.url)
+                .append(httpVersion, that.httpVersion)
+                .append(cookies, that.cookies)
+                .append(headers, that.headers)
+                .append(queryString, that.queryString)
+                .append(postData, that.postData)
+                .append(comment, that.comment)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(method)
+                .append(url)
+                .append(httpVersion)
+                .append(cookies)
+                .append(headers)
+                .append(queryString)
+                .append(postData)
+                .append(headersSize)
+                .append(bodySize)
+                .append(comment)
+                .toHashCode();
+    }
 }

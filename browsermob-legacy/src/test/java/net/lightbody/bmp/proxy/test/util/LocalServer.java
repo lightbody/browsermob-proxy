@@ -4,15 +4,21 @@ import net.lightbody.bmp.proxy.test.servlet.EchoPayloadServlet;
 import net.lightbody.bmp.proxy.test.servlet.EchoServlet;
 import net.lightbody.bmp.proxy.test.servlet.JsonServlet;
 import net.lightbody.bmp.proxy.test.servlet.SetCookieServlet;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.GzipHandler;
+import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -42,17 +48,17 @@ public class LocalServer {
         servletHandler.addServletWithMapping(EchoServlet.class, "/echo");
         servletHandler.addServletWithMapping(EchoPayloadServlet.class, "/echopayload");
 
-        handlers.addHandler(servletHandler);
 
         // create a ResourceHandler to serve up static resources from the classpath at /local-server
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setBaseResource(Resource.newClassPathResource("/local-server"));
 
-        handlers.addHandler(resourceHandler);
 
         // wrap the other handlers in a GzipHandler that does not gzip anything by default
         GzipHandler gzipHandler = new GzipHandler();
         gzipHandler.setMinGzipSize(Integer.MAX_VALUE);
+        handlers.addHandler(resourceHandler);
+        handlers.addHandler(servletHandler);
         gzipHandler.setHandler(handlers);
 
         server.setHandler(gzipHandler);
@@ -63,7 +69,7 @@ public class LocalServer {
             throw new RuntimeException("Could not start local Jetty server for tests", e);
         }
 
-        this.port = server.getConnectors()[0].getLocalPort();
+        this.port = server.getURI().getPort();
 
         started.set(true);
     }
@@ -78,7 +84,7 @@ public class LocalServer {
     }
 
     /**
-     * Forces the server to gzip all responses (see {@link org.eclipse.jetty.server.handler.GzipHandler} for response codes that will
+     * Forces the server to gzip all responses (see {@link org.eclipse.jetty.server.handler.gzip.GzipHandler} for response codes that will
      * be gzipped).
      */
     public void forceGzip() {

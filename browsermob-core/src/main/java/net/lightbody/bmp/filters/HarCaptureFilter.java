@@ -10,14 +10,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import net.lightbody.bmp.core.har.Har;
-import net.lightbody.bmp.core.har.HarCookie;
-import net.lightbody.bmp.core.har.HarEntry;
-import net.lightbody.bmp.core.har.HarNameValuePair;
-import net.lightbody.bmp.core.har.HarPostData;
-import net.lightbody.bmp.core.har.HarPostDataParam;
-import net.lightbody.bmp.core.har.HarRequest;
-import net.lightbody.bmp.core.har.HarResponse;
+import net.lightbody.bmp.core.har.*;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
@@ -33,17 +26,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
-import static net.lightbody.bmp.filters.StatsDMetricsFilter.getStatsDPort;
 
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
@@ -273,10 +260,9 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             }
 
             harEntry.getResponse().setBodySize(responseBodySize.get());
+            logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         }
-
-        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
-
+        
         return super.serverToProxyResponse(httpObject);
     }
 
@@ -307,6 +293,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
+
+        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
     /**
