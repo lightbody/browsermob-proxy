@@ -262,7 +262,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             harEntry.getResponse().setBodySize(responseBodySize.get());
             logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         }
-        
         return super.serverToProxyResponse(httpObject);
     }
 
@@ -293,7 +292,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
-
         logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
@@ -764,7 +762,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         }
     }
 
-    private void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
+    protected static void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
+        System.out.println("TEST");
         if (!isAlreadyLoggedIn.get() && (response.getStatus() >= 500 || response.getStatus() == 0)) {
             MDC.put("caller", "mobproxy");
             MDC.put("http_response_code", String.valueOf(response.getStatus()));

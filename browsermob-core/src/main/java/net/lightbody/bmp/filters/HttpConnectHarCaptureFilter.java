@@ -343,7 +343,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
 
         populateServerIpAddress(harEntry);
 
-
+        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         return harEntry;
     }
 
