@@ -163,6 +163,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
             harEntry.getTimings().setDns(System.nanoTime() - dnsResolutionStartedNanos, TimeUnit.NANOSECONDS);
         }
 
+        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         httpConnectTimes.remove(clientAddress);
     }
 
@@ -178,6 +179,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
             harEntry.getTimings().setConnect(System.nanoTime() - connectionStartedNanos, TimeUnit.NANOSECONDS);
         }
 
+        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         httpConnectTimes.remove(clientAddress);
     }
 
@@ -223,6 +225,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
+        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
     @Override
@@ -343,7 +346,6 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
 
         populateServerIpAddress(harEntry);
 
-        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         return harEntry;
     }
 
