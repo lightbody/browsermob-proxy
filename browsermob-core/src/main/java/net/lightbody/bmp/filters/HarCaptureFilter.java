@@ -158,8 +158,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             responseCaptureFilter = null;
         }
 
-        createStatsDClient();
-
         this.har = har;
 
         this.harEntry = new HarEntry(currentPageRef);
@@ -273,6 +271,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         createStatsDClient();
         statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                 .concat("." + harEntry.getResponse().getStatus()).concat(".response_timeout"));
+        stopStatsDClient();
 
         response.setError(HarCaptureUtil.getResponseTimedOutErrorMessage());
 
@@ -646,6 +645,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         createStatsDClient();
         statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                 .concat("." + harEntry.getResponse().getStatus()).concat(".server_resolution_fail"));
+        stopStatsDClient();
 
         response.setError(HarCaptureUtil.getResolutionFailedErrorMessage(hostAndPort));
 
@@ -653,6 +653,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         if (dnsResolutionStartedNanos > 0L) {
             harEntry.getTimings().setDns(System.nanoTime() - dnsResolutionStartedNanos, TimeUnit.NANOSECONDS);
         }
+        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
     @Override
@@ -690,6 +691,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         createStatsDClient();
         statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                 .concat("." + harEntry.getResponse().getStatus()).concat(".server_connection_fail"));
+        stopStatsDClient();
         harEntry.setResponse(response);
 
         response.setError(HarCaptureUtil.getConnectionFailedErrorMessage());
@@ -778,6 +780,13 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private void createStatsDClient() {
         if (statsDClient.get() == null) {
             statsDClient.set(new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort()));
+        }
+    }
+
+    private void stopStatsDClient() {
+        if (Objects.nonNull(statsDClient.get())) {
+            statsDClient.get().stop();
+            statsDClient.remove();
         }
     }
 }

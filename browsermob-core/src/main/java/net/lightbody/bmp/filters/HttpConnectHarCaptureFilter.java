@@ -179,7 +179,6 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
             harEntry.getTimings().setConnect(System.nanoTime() - connectionStartedNanos, TimeUnit.NANOSECONDS);
         }
 
-        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         httpConnectTimes.remove(clientAddress);
     }
 
