@@ -35,7 +35,7 @@ import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
     private static final ThreadLocal<StatsDClient> statsDClient = new InheritableThreadLocal<>();
-    private static final ThreadLocal<Boolean> isAlreadyLoggedIn = InheritableThreadLocal.withInitial(() -> false);
+    private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
 
     /**
      * The currently active HAR at the time the current request is received.
@@ -258,8 +258,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             }
 
             harEntry.getResponse().setBodySize(responseBodySize.get());
-            logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         }
+        logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         return super.serverToProxyResponse(httpObject);
     }
 
@@ -765,7 +765,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected static void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
-        if (!isAlreadyLoggedIn.get() && (response.getStatus() >= 500 || response.getStatus() == 0)) {
+        if ((Objects.isNull(isAlreadyLoggedIn.get()) || isAlreadyLoggedIn.get().hashCode() != request.hashCode())
+                && (response.getStatus() >= 500 || response.getStatus() == 0)) {
             MDC.put("caller", "mobproxy");
             MDC.put("http_response_code", String.valueOf(response.getStatus()));
             MDC.put("http_host", request.getUrl());
@@ -773,7 +774,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
             MDC.put("method", request.getMethod());
             MDC.put("response", BeansJsonMapper.getJsonString(response));
             log.error("received bad status code");
-            isAlreadyLoggedIn.set(true);
+            isAlreadyLoggedIn.set(request);
         }
     }
 
