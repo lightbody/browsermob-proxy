@@ -164,6 +164,22 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     @Override
+    public HttpObject proxyToClientResponse(HttpObject httpObject) {
+        if (httpObject instanceof LastHttpContent) {
+            if (harEntry.getResponse().getStatus() == 0) {
+                HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
+                createStatsDClient();
+                statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+                        .concat("." + harEntry.getResponse().getStatus()).concat(".request_timeout"));
+                stopStatsDClient();
+
+            }
+        }
+
+        return super.proxyToClientResponse(httpObject);
+    }
+
+    @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         // if a ServerResponseCaptureFilter is configured, delegate to it to collect the client request. if it is not
         // configured, we still need to capture basic information (timings, possibly client headers, etc.), just not content.

@@ -1,17 +1,11 @@
 package net.lightbody.bmp.filters;
 
 import com.google.common.cache.CacheBuilder;
-import com.timgroup.statsd.NonBlockingStatsDClient;
-import com.timgroup.statsd.StatsDClient;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import net.lightbody.bmp.core.har.Har;
-import net.lightbody.bmp.core.har.HarEntry;
-import net.lightbody.bmp.core.har.HarRequest;
-import net.lightbody.bmp.core.har.HarResponse;
-import net.lightbody.bmp.core.har.HarTimings;
+import net.lightbody.bmp.core.har.*;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.util.HttpUtil;
@@ -25,8 +19,6 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
-import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
-
 /**
  * This filter captures HAR data for HTTP CONNECT requests. CONNECTs are "meta" requests that must be made before HTTPS
  * requests, but are not populated as separate requests in the HAR. Most information from HTTP CONNECTs (such as SSL
@@ -38,7 +30,6 @@ import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
  */
 public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implements ModifiedRequestAwareFilter {
     private static final Logger log = LoggerFactory.getLogger(HttpConnectHarCaptureFilter.class);
-    private static final StatsDClient statsDClient = new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort());
 
     /**
      * The currently active HAR at the time the current request is received.
@@ -336,8 +327,6 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
 
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
         harEntry.setResponse(response);
-        statsDClient.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
-                .concat("." + harEntry.getResponse().getStatus()).concat(".failed_connect_request"));
 
         response.setError(errorMessage);
 

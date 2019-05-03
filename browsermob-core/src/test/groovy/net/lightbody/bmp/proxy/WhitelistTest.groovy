@@ -37,7 +37,7 @@ class WhitelistTest extends MockServerTest {
     @Test
     void testWhitelistCannotShortCircuitCONNECT() {
         HttpRequest request = mock(HttpRequest.class)
-        when(request.getMethod()).thenReturn(HttpMethod.CONNECT)
+        when(request.method()).thenReturn(HttpMethod.CONNECT)
         when(request.uri()).thenReturn('somedomain.com:443')
         when(request.protocolVersion()).thenReturn(HttpVersion.HTTP_1_1)
 
