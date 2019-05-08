@@ -39,7 +39,7 @@ public class BlacklistFilter extends HttpsAwareFiltersAdapter {
 
                 if (entry.matches(url, httpRequest.method().name())) {
                     HttpResponseStatus status = HttpResponseStatus.valueOf(entry.getStatusCode());
-                    HttpResponse resp = new DefaultFullHttpResponse(httpRequest.getProtocolVersion(), status);
+                    HttpResponse resp = new DefaultFullHttpResponse(httpRequest.protocolVersion(), status);
                     HttpUtil.setContentLength(resp, 0L);
 
                     return resp;
