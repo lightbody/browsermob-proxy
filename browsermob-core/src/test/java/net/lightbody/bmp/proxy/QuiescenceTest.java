@@ -19,10 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -218,7 +215,6 @@ public class QuiescenceTest extends NewProxyServerTest {
     }
 
     @Test
-    @Ignore //TODO: ignoring this test because it seems to fail on Java 8 under travis-ci. determine if there is an actual code defect, or just a test/environment defect.
     public void testWaitForQuiescenceInterruptedBySecondRequestSuccessful() throws InterruptedException {
         mockServer.when(
                 request().withMethod("GET")
@@ -235,27 +231,24 @@ public class QuiescenceTest extends NewProxyServerTest {
 
         final AtomicBoolean exceptionOccurred = new AtomicBoolean();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try (CloseableHttpClient client = NewProxyServerTestUtil.getNewHttpClient(proxy.getPort())) {
-                    HttpResponse response = client.execute(new HttpGet("http://127.0.0.1:" + mockServerPort + "/successquiesence2s"));
-                    EntityUtils.consumeQuietly(response.getEntity());
-                    firstRequestStatusCode.set(response.getStatusLine().getStatusCode());
+        new Thread(() -> {
+            try (CloseableHttpClient client = NewProxyServerTestUtil.getNewHttpClient(proxy.getPort())) {
+                HttpResponse response = client.execute(new HttpGet("http://127.0.0.1:" + mockServerPort + "/successquiesence2s"));
+                EntityUtils.consumeQuietly(response.getEntity());
+                firstRequestStatusCode.set(response.getStatusLine().getStatusCode());
 
-                    Thread.sleep(1000);
+                Thread.sleep(1000);
 
-                    response = client.execute(new HttpGet("http://127.0.0.1:" + mockServerPort + "/successquiesence2s"));
-                    EntityUtils.consumeQuietly(response.getEntity());
+                response = client.execute(new HttpGet("http://127.0.0.1:" + mockServerPort + "/successquiesence2s"));
+                EntityUtils.consumeQuietly(response.getEntity());
 
-                    secondRequestFinished.set(System.nanoTime());
+                secondRequestFinished.set(System.nanoTime());
 
-                    secondRequestStatusCode.set(response.getStatusLine().getStatusCode());
-                } catch (IOException | InterruptedException e) {
-                    exceptionOccurred.set(true);
+                secondRequestStatusCode.set(response.getStatusLine().getStatusCode());
+            } catch (IOException | InterruptedException e) {
+                exceptionOccurred.set(true);
 
-                    log.error("Exception occurred while making HTTP request", e);
-                }
+                log.error("Exception occurred while making HTTP request", e);
             }
         }).start();
 
