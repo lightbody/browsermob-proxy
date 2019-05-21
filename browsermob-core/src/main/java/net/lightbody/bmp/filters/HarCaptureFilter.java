@@ -165,13 +165,13 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
 
     @Override
     public HttpObject proxyToClientResponse(HttpObject httpObject) {
-        if (httpObject instanceof LastHttpContent) {
+        if (httpObject instanceof HttpResponse) {
             if (harEntry.getResponse().getStatus() == 0) {
                 HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
-                createStatsDClient();
-                statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+                StatsDClient client = createStatsDClient();
+                client.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
                         .concat("." + harEntry.getResponse().getStatus()).concat(".request_timeout"));
-                stopStatsDClient();
+                client.stop();
 
             }
         }
@@ -284,10 +284,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         // replace any existing HarResponse that was created if the server sent a partial response
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
         harEntry.setResponse(response);
-        createStatsDClient();
-        statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
-                .concat("." + harEntry.getResponse().getStatus()).concat(".response_timeout"));
-        stopStatsDClient();
 
         response.setError(HarCaptureUtil.getResponseTimedOutErrorMessage());
 
@@ -307,6 +303,12 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
+
+        StatsDClient client = createStatsDClient();
+        client.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+                .concat("." + harEntry.getResponse().getStatus()).concat(".response_timeout"));
+        client.stop();
+
         logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
@@ -658,10 +660,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     public void proxyToServerResolutionFailed(String hostAndPort) {
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
         harEntry.setResponse(response);
-        createStatsDClient();
-        statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
-                .concat("." + harEntry.getResponse().getStatus()).concat(".server_resolution_fail"));
-        stopStatsDClient();
 
         response.setError(HarCaptureUtil.getResolutionFailedErrorMessage(hostAndPort));
 
@@ -669,6 +667,11 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         if (dnsResolutionStartedNanos > 0L) {
             harEntry.getTimings().setDns(System.nanoTime() - dnsResolutionStartedNanos, TimeUnit.NANOSECONDS);
         }
+
+        StatsDClient client = createStatsDClient();
+        client.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+                .concat("." + harEntry.getResponse().getStatus()).concat(".server_resolution_fail"));
+        client.stop();
         logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
@@ -704,10 +707,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     @Override
     public void proxyToServerConnectionFailed() {
         HarResponse response = HarCaptureUtil.createHarResponseForFailure();
-        createStatsDClient();
-        statsDClient.get().increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
-                .concat("." + harEntry.getResponse().getStatus()).concat(".server_connection_fail"));
-        stopStatsDClient();
+
         harEntry.setResponse(response);
 
         response.setError(HarCaptureUtil.getConnectionFailedErrorMessage());
@@ -716,6 +716,11 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         if (connectionStartedNanos > 0L) {
             harEntry.getTimings().setConnect(System.nanoTime() - connectionStartedNanos, TimeUnit.NANOSECONDS);
         }
+
+        StatsDClient client = createStatsDClient();
+        client.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
+                .concat("." + harEntry.getResponse().getStatus()).concat(".server_connection_fail"));
+        client.stop();
     }
 
     @Override
@@ -794,16 +799,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         }
     }
 
-    private void createStatsDClient() {
-        if (statsDClient.get() == null) {
-            statsDClient.set(new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort()));
-        }
-    }
-
-    private void stopStatsDClient() {
-        if (Objects.nonNull(statsDClient.get())) {
-            statsDClient.get().stop();
-            statsDClient.remove();
-        }
+    private StatsDClient createStatsDClient() {
+        return new NonBlockingStatsDClient("automated_tests", getStatsDHost(), getStatsDPort());
     }
 }
