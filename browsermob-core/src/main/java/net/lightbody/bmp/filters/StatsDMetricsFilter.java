@@ -3,7 +3,6 @@ package net.lightbody.bmp.filters;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
@@ -19,9 +18,9 @@ public class StatsDMetricsFilter extends HttpsAwareFiltersAdapter {
     }
 
     @Override
-    public HttpObject proxyToClientResponse(HttpObject httpObject) {
-        if (FullHttpResponse.class.isAssignableFrom(httpObject.getClass())) {
-            HttpResponse httpResponse = (FullHttpResponse) httpObject;
+    public HttpObject serverToProxyResponse(HttpObject httpObject) {
+        if (httpObject instanceof HttpResponse) {
+            HttpResponse httpResponse = (HttpResponse) httpObject;
             prepareStatsDMetrics(httpResponse.status().code());
         }
         return super.serverToProxyResponse(httpObject);

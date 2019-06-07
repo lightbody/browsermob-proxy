@@ -893,7 +893,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
      */
     @Override
     public void addResponseFilter(ResponseFilter filter) {
-        addLastHttpFilterFactory(new ResponseFilterAdapter.FilterSource(filter));
+        addLastHttpFilterFactory(new ResponseFilterAdapter.FilterSource(filter, Integer.parseInt(System.getProperty("maxResponseSizeBytes", String.valueOf(ResponseFilterAdapter.FilterSource.DEFAULT_MAXIMUM_RESPONSE_BUFFER_SIZE)))));
     }
 
     /**
@@ -1059,13 +1059,6 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
         addHttpFilterFactory(new HttpFiltersSourceAdapter() {
             @Override
-            public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
-                return new StatsDMetricsFilter(originalRequest, ctx);
-            }
-        });
-
-        addHttpFilterFactory(new HttpFiltersSourceAdapter() {
-            @Override
             public HttpFilters filterRequest(HttpRequest originalRequest) {
                 return new LatencyFilter(originalRequest, latencyMs);
             }
@@ -1075,6 +1068,13 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
             @Override
             public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                 return new UnregisterRequestFilter(originalRequest, ctx, activityMonitor);
+            }
+        });
+
+        addHttpFilterFactory(new HttpFiltersSourceAdapter() {
+            @Override
+            public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
+                return new StatsDMetricsFilter(originalRequest, ctx);
             }
         });
     }

@@ -1,5 +1,6 @@
 package net.lightbody.bmp.proxy;
 
+import net.lightbody.bmp.filters.ResponseFilterAdapter;
 import net.lightbody.bmp.proxy.guice.LegacyProxyServerProvider;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ public class ExpiringProxyTest {
         ProxyManager proxyManager = new ProxyManager(new LegacyProxyServerProvider(),
                 minPort,
                 minPort + 100,
-                2);
+                2, ResponseFilterAdapter.FilterSource.DEFAULT_MAXIMUM_RESPONSE_BUFFER_SIZE);
 
         LegacyProxyServer proxy = proxyManager.create(Collections.<String, String>emptyMap());
         int port = proxy.getPort();
@@ -44,7 +45,7 @@ public class ExpiringProxyTest {
         ProxyManager proxyManager = new ProxyManager(new LegacyProxyServerProvider(),
                 minPort,
                 minPort + 100,
-                0);
+                0, ResponseFilterAdapter.FilterSource.DEFAULT_MAXIMUM_RESPONSE_BUFFER_SIZE);
 
         LegacyProxyServer proxy = proxyManager.create(Collections.<String, String>emptyMap());
         int port = proxy.getPort();

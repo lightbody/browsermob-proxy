@@ -34,7 +34,6 @@ import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
 
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
-    private static final ThreadLocal<StatsDClient> statsDClient = new InheritableThreadLocal<>();
     private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
 
     /**
@@ -161,22 +160,6 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         this.har = har;
 
         this.harEntry = new HarEntry(currentPageRef);
-    }
-
-    @Override
-    public HttpObject proxyToClientResponse(HttpObject httpObject) {
-        if (httpObject instanceof HttpResponse) {
-            if (harEntry.getResponse().getStatus() == 0) {
-                HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
-                StatsDClient client = createStatsDClient();
-                client.increment(getProxyPrefix().concat(prepareMetric(harEntry.getRequest().getUrl()))
-                        .concat("." + harEntry.getResponse().getStatus()).concat(".request_timeout"));
-                client.stop();
-
-            }
-        }
-
-        return super.proxyToClientResponse(httpObject);
     }
 
     @Override

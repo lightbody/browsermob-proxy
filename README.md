@@ -190,6 +190,7 @@ system properties will be used to specify the upstream proxy.
  - -proxyPortRange \<from\>-\<to\>
   - Range of ports reserved for proxies. Only applies if *port* parameter is not supplied in the POST request. Default values are \<port\>+1 to \<port\>+500+1.
  - -ttl \<seconds\>
+ - -maxResponseSizeBytes max size of response in bytes by default 2097152 (2 MB)
   - Proxy will be automatically deleted after a specified time period. Off by default.
 
 ### Embedded Mode
@@ -395,7 +396,7 @@ When you build the latest code from source, you'll have access to the latest sna
     <dependency>
         <groupId>net.lightbody.bmp</groupId>
         <artifactId>browsermob-core</artifactId>
-        <version>2.1.32-SNAPSHOT</version>
+        <version>2.1.33-SNAPSHOT</version>
         <scope>test</scope>
     </dependency>
 ```

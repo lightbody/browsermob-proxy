@@ -62,7 +62,7 @@ public class ResponseFilterAdapter extends HttpsAwareFiltersAdapter implements M
      * and sets a maximum response buffer size of 2 MiB.
      */
     public static class FilterSource extends HttpFiltersSourceAdapter {
-        private static final int DEFAULT_MAXIMUM_RESPONSE_BUFFER_SIZE = 2097152;
+        public static final int DEFAULT_MAXIMUM_RESPONSE_BUFFER_SIZE = 2097152;
 
         private final ResponseFilter filter;
         private final int maximumResponseBufferSizeInBytes;
@@ -100,7 +100,7 @@ public class ResponseFilterAdapter extends HttpsAwareFiltersAdapter implements M
 
         @Override
         public int getMaximumResponseBufferSizeInBytes() {
-            return maximumResponseBufferSizeInBytes;
+            return Math.toIntExact(maximumResponseBufferSizeInBytes);
         }
     }
 }
