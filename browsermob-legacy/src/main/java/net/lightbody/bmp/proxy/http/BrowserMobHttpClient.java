@@ -127,7 +127,7 @@ public class BrowserMobHttpClient {
     private static final String VERSION = "2.1";
 
 	private static final Logger LOG = LoggerFactory.getLogger(BrowserMobHttpClient.class);
-	
+
     private static final int BUFFER = 4096;
 
     private volatile Har har;
@@ -137,7 +137,7 @@ public class BrowserMobHttpClient {
      * keep headers
      */
     private volatile boolean captureHeaders;
-    
+
     /**
      * keep contents
      */
@@ -152,7 +152,7 @@ public class BrowserMobHttpClient {
      * socket factory dedicated to port 80 (HTTP)
      */
     private final SimulatedSocketFactory socketFactory;
-    
+
     /**
      * socket factory dedicated to port 443 (HTTPS)
      */
@@ -160,51 +160,56 @@ public class BrowserMobHttpClient {
 
 
     private final PoolingHttpClientConnectionManager httpClientConnMgr;
-    
+
     /**
      * Builders for httpClient
      * Each time you change their configuration you should call updateHttpClient()
      */
 	private final Builder requestConfigBuilder;
     private final HttpClientBuilder httpClientBuilder;
-    
+
     /**
      * The current httpClient which will execute HTTP requests
      */
     private volatile CloseableHttpClient httpClient;
-    
+
     private final BasicCookieStore cookieStore = new BasicCookieStore();
-    
+
     /**
      * List of rejected URL patterns
      */
     private final Collection<BlacklistEntry> blacklistEntries = new CopyOnWriteArrayList<BlacklistEntry>();
-    
+
     /**
      * List of accepted URL patterns
      */
     private volatile Whitelist whitelist = Whitelist.WHITELIST_DISABLED;
-    
+
     /**
      * List of URLs to rewrite
      */
     private final CopyOnWriteArrayList<RewriteRule> rewriteRules = new CopyOnWriteArrayList<RewriteRule>();
-    
+
     /**
      * triggers to process when sending request
      */
     private final List<RequestInterceptor> requestInterceptors = new CopyOnWriteArrayList<RequestInterceptor>();
-    
+
     /**
      * triggers to process when receiving response
      */
     private final List<ResponseInterceptor> responseInterceptors = new CopyOnWriteArrayList<ResponseInterceptor>();
-    
+
     /**
      * additional headers sent with request
      */
     private final Map<String, String> additionalHeaders = new ConcurrentHashMap<String, String>();
-    
+
+    /**
+     * Regexp to check request url and inject headers if url match regexp.
+     */
+    private static String  headersFilterRegexp;
+
     /**
      * request timeout: set to -1 to disable timeout
      */
@@ -214,7 +219,7 @@ public class BrowserMobHttpClient {
      * is it possible to add a new request?
      */
     private final AtomicBoolean allowNewRequests = new AtomicBoolean(true);
-    
+
     /**
      * Hostname resolver that wraps a {@link net.lightbody.bmp.proxy.dns.HostResolver}. The wrapped HostResolver can be replaced safely at
      * runtime using {@link LegacyHostResolverAdapter#setResolver(net.lightbody.bmp.proxy.dns.AdvancedHostResolver)}.
@@ -226,22 +231,22 @@ public class BrowserMobHttpClient {
      * does the proxy support gzip compression? (set to false if you go through a browser)
      */
     private boolean decompress = true;
-    
+
     /**
      * set of active requests
      */
     private final Set<ActiveRequest> activeRequests = Collections.newSetFromMap(new ConcurrentHashMap<ActiveRequest, Boolean>());
-    
+
     /**
      * credentials used for authentication
      */
     private WildcardMatchingCredentialsProvider credsProvider;
-    
+
     /**
      * is the client shutdown?
      */
     private volatile boolean shutdown = false;
-    
+
     /**
      * authentication type used
      */
@@ -251,17 +256,17 @@ public class BrowserMobHttpClient {
      * does the proxy follow redirects? (set to false if you go through a browser)
      */
     private boolean followRedirects = true;
-    
+
     /**
      * maximum redirects supported by the proxy
      */
     private static final int MAX_REDIRECT = 10;
-    
+
     /**
      * remaining requests counter
      */
     private final AtomicInteger requestCounter;
-    
+
     /**
      * Init HTTP client
      * @param streamManager will be capped to 100 Megabits (by default it is disabled)
@@ -276,13 +281,13 @@ public class BrowserMobHttpClient {
     		.setConnectionRequestTimeout(60000)
     		.setConnectTimeout(2000)
     		.setSocketTimeout(60000);
-        
+
         // we associate each SocketFactory with their protocols
         Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
         	.register("http", this.socketFactory)
         	.register("https", this.sslSocketFactory)
         	.build();
-        
+
         httpClientConnMgr = new PoolingHttpClientConnectionManager(registry, resolverWrapper) {
             @Override
             public ConnectionRequest requestConnection(HttpRoute route, Object state) {
@@ -312,7 +317,7 @@ public class BrowserMobHttpClient {
         credsProvider = new WildcardMatchingCredentialsProvider();
         httpClientBuilder = getDefaultHttpClientBuilder(streamManager);
         httpClient = httpClientBuilder.build();
-        
+
         HttpClientInterrupter.watch(this);
     }
 
@@ -324,10 +329,10 @@ public class BrowserMobHttpClient {
         		@Override
                 protected HttpResponse doSendRequest(HttpRequest request, HttpClientConnection conn, HttpContext context) throws IOException, HttpException {
                     long start = System.nanoTime();
-                    
+
                     // send request
                     HttpResponse response = super.doSendRequest(request, conn, context);
-                    
+
                     // set "sending" for resource
                     RequestInfo.get().send(start, System.nanoTime());
                     return response;
@@ -337,7 +342,7 @@ public class BrowserMobHttpClient {
                 protected HttpResponse doReceiveResponse(HttpRequest request, HttpClientConnection conn, HttpContext context) throws HttpException, IOException {
                     long start = System.nanoTime();
                     HttpResponse response = super.doReceiveResponse(request, conn, context);
-                    
+
                     // +4 => header/data separation
                     long responseHeadersSize = response.getStatusLine().toString().length() + 4;
 					for (Header header : response.getAllHeaders()) {
@@ -363,7 +368,7 @@ public class BrowserMobHttpClient {
                     }
                     // set waiting time
                     RequestInfo.get().wait(start, System.nanoTime());
-                    
+
                     return response;
                 }
 	        })
@@ -471,7 +476,7 @@ public class BrowserMobHttpClient {
             throw reportBadURI(url, "GET", e);
         }
     }
-    
+
     public BrowserMobHttpRequest newPatch(String url, net.lightbody.bmp.proxy.jetty.http.HttpRequest proxyRequest) {
     	try {
     		URI uri = makeUri(url);
@@ -589,7 +594,7 @@ public class BrowserMobHttpClient {
         for (ActiveRequest activeRequest : activeRequests) {
             activeRequest.checkTimeout();
         }
-        
+
         // Close expired connections
         httpClientConnMgr.closeExpiredConnections();
         // Optionally, close connections
@@ -601,7 +606,7 @@ public class BrowserMobHttpClient {
         if (!allowNewRequests.get()) {
             throw new RuntimeException("No more requests allowed");
         }
-        
+
         try {
             requestCounter.incrementAndGet();
 
@@ -632,7 +637,7 @@ public class BrowserMobHttpClient {
 
         HttpRequestBase method = req.getMethod();
         String url = method.getURI().toString();
-        
+
         // process any rewrite requests
         boolean rewrote = false;
         String newUrl = url;
@@ -663,7 +668,7 @@ public class BrowserMobHttpClient {
                     break;
                 }
             }
-            
+
             // url does not match whitelist, set the response code
             if (!found) {
                 mockResponseCode = currentWhitelist.getResponseCode();
@@ -698,7 +703,7 @@ public class BrowserMobHttpClient {
         if (os == null) {
             os = new CappedByteArrayOutputStream(1024 * 1024); // MOB-216 don't buffer more than 1 MB
         }
-        
+
         // link the object up now, before we make the request, so that if we get cut off (ie: favicon.ico request and browser shuts down)
         // we still have the attempt associated, even if we never got a response
         HarEntry entry = new HarEntry(harPageRef);
@@ -815,10 +820,10 @@ public class BrowserMobHttpClient {
                     if(decompress && response.getEntity().getContentLength() != 0) { //getContentLength<0 if unknown
                         if (gzipping) {
                             is = new GZIPInputStream(is);
-                        } else if (deflating) {  
+                        } else if (deflating) {
                         	// RAW deflate only
                         	// WARN : if system is using zlib<=1.1.4 the stream must be append with a dummy byte
-                        	// that is not requiered for zlib>1.1.4 (not mentioned on current Inflater javadoc)	        
+                        	// that is not requiered for zlib>1.1.4 (not mentioned on current Inflater javadoc)
                         	is = new InflaterInputStream(is, new Inflater(true));
                         }
                     }
@@ -903,8 +908,8 @@ public class BrowserMobHttpClient {
                 }
             }
         }
-        
-        
+
+
     	// +4 => header/data separation
 		long requestHeadersSize = method.getRequestLine().toString().length() + 4;
 		long requestBodySize = 0;
@@ -919,7 +924,7 @@ public class BrowserMobHttpClient {
         entry.getRequest().setHeadersSize(requestHeadersSize);
         entry.getRequest().setBodySize(requestBodySize);
         if (captureContent) {
-        	
+
             // can we understand the POST data at all?
             if (method instanceof HttpEntityEnclosingRequestBase && req.getCopy() != null) {
                 HttpEntityEnclosingRequestBase enclosingReq = (HttpEntityEnclosingRequestBase) method;
@@ -950,7 +955,7 @@ public class BrowserMobHttpClient {
                     	LOG.info("Unexpected problem when parsing input copy", e);
 					} catch (RuntimeException e) {
                         LOG.info("Unexpected problem when parsing input copy", e);
-                    } 
+                    }
                 } else {
                     // not URL encoded, so let's grab the body of the POST and capture that
 					try {
@@ -988,12 +993,12 @@ public class BrowserMobHttpClient {
                         // ok, we need to decompress it before we can put it in the har file
                         try {
                             InputStream temp = null;
-                            if(gzipping){	
+                            if(gzipping){
                                 temp = new GZIPInputStream(new ByteArrayInputStream(copy.toByteArray()));
                             } else if (deflating) {
                             	// RAW deflate only?
                             	// WARN : if system is using zlib<=1.1.4 the stream must be append with a dummy byte
-                            	// that is not requiered for zlib>1.1.4 (not mentioned on current Inflater javadoc)		        
+                            	// that is not requiered for zlib>1.1.4 (not mentioned on current Inflater javadoc)
                             	temp = new InflaterInputStream(new ByteArrayInputStream(copy.toByteArray()), new Inflater(true));
                             }
                             copy = new ByteArrayOutputStream();
@@ -1001,7 +1006,7 @@ public class BrowserMobHttpClient {
                         } catch (IOException e) {
                             throw new RuntimeException("Error when decompressing input stream", e);
                         }
-                    } 
+                    }
 
                     if (hasTextualContent(contentType)) {
                         setTextOfEntry(entry, copy, contentType);
@@ -1113,7 +1118,7 @@ public class BrowserMobHttpClient {
 		}
 	}
 
-    
+
     public void shutdown() {
         shutdown = true;
         abortActiveRequests();
@@ -1129,7 +1134,7 @@ public class BrowserMobHttpClient {
         for (ActiveRequest activeRequest : activeRequests) {
             activeRequest.abort();
         }
-        
+
         activeRequests.clear();
     }
 
@@ -1221,10 +1226,10 @@ public class BrowserMobHttpClient {
     public List<BlacklistEntry> getBlacklistedRequests() {
     	List<BlacklistEntry> blacklist = new ArrayList<BlacklistEntry>(blacklistEntries.size());
     	blacklist.addAll(blacklistEntries);
-    	
+
         return blacklist;
     }
-    
+
     public Collection<BlacklistEntry> getBlacklistedUrls() {
     	return blacklistEntries;
     }
@@ -1236,7 +1241,7 @@ public class BrowserMobHttpClient {
     public boolean isWhitelistEnabled() {
     	return whitelist.isEnabled();
     }
-    
+
     /**
      * @deprecated use getWhitelistUrls()
      * @return <i>unmodifiable</i> list of whitelisted Patterns
@@ -1245,19 +1250,19 @@ public class BrowserMobHttpClient {
     public List<Pattern> getWhitelistRequests() {
     	List<Pattern> whitelistPatterns = new ArrayList<Pattern>(whitelist.getPatterns().size());
     	whitelistPatterns.addAll(whitelist.getPatterns());
-    	
+
         return Collections.unmodifiableList(whitelistPatterns);
     }
-    
+
     /**
      * Retrieves Patterns of URLs that have been whitelisted.
-     * 
+     *
      * @return <i>unmodifiable</i> whitelisted URL Patterns
      */
     public Collection<Pattern> getWhitelistUrls() {
     	return whitelist.getPatterns();
     }
-    
+
     public int getWhitelistResponseCode() {
     	return whitelist.getResponseCode();
     }
@@ -1265,9 +1270,9 @@ public class BrowserMobHttpClient {
     /**
      * Whitelist the specified request patterns, returning the specified responseCode for non-whitelisted
      * requests.
-     * 
-     * @param patterns regular expression strings matching URL patterns to whitelist. if empty or null, 
-     * 		  the whitelist will be enabled but will not match any URLs. 
+     *
+     * @param patterns regular expression strings matching URL patterns to whitelist. if empty or null,
+     * 		  the whitelist will be enabled but will not match any URLs.
      * @param responseCode the HTTP response code to return for non-whitelisted requests
      */
     public void whitelistRequests(String[] patterns, int responseCode) {
@@ -1277,14 +1282,14 @@ public class BrowserMobHttpClient {
     		whitelist = new Whitelist(patterns, responseCode);
     	}
     }
-    
+
     /**
-     * Clears and disables the current whitelist. 
+     * Clears and disables the current whitelist.
      */
     public void clearWhitelist() {
     	whitelist = Whitelist.WHITELIST_DISABLED;
     }
-    
+
     public void addHeader(String name, String value) {
         additionalHeaders.put(name, value);
     }
@@ -1315,7 +1320,7 @@ public class BrowserMobHttpClient {
     	        };
     	    }
     	};
-    	
+
     	Registry<CookieSpecProvider> r = RegistryBuilder.<CookieSpecProvider>create()
     	        .register(CookieSpecs.BEST_MATCH,
     	            new BestMatchSpecFactory())
@@ -1323,15 +1328,15 @@ public class BrowserMobHttpClient {
     	            new BrowserCompatSpecFactory())
     	        .register("easy", easySpecProvider)
     	        .build();
-    	
+
     	RequestConfig requestConfig = RequestConfig.custom()
     	        .setCookieSpec("easy")
     	        .build();
-    	
+
     	httpClientBuilder.setDefaultCookieSpecRegistry(r)
 	    .setDefaultRequestConfig(requestConfig);
     	updateHttpClient();
-    	
+
         decompress =  false;
         setFollowRedirects(false);
     }
@@ -1340,13 +1345,13 @@ public class BrowserMobHttpClient {
      * CloseableHttpClient doesn't permit anymore to change parameters easily.
      * This method allow you to rebuild the httpClientBuilder to get the CloseableHttpClient
      * When the config is changed.
-     * 
+     *
      * So httpClient reference change this may lead to concurrency issue.
      */
     private void updateHttpClient(){
     	httpClient = httpClientBuilder.build();
     }
-    
+
     public String remappedHost(String host) {
         if (resolverWrapper.getResolver() instanceof  AdvancedHostResolver) {
             AdvancedHostResolver advancedHostResolver = (AdvancedHostResolver) resolverWrapper.getResolver();
@@ -1422,7 +1427,7 @@ public class BrowserMobHttpClient {
             this.request = request;
             this.start = start;
         }
-        
+
         /**
          * Checks the timeout for this request, and aborts if necessary.
          * @return true if the request was aborted for exceeding its timeout, otherwise false.
@@ -1431,7 +1436,7 @@ public class BrowserMobHttpClient {
         	if (aborting.get()) {
         		return false;
         	}
-        	
+
             if (requestTimeout != -1) {
                 if (request != null && start != null && new Date(System.currentTimeMillis() - requestTimeout).after(start)) {
                 	boolean okayToAbort = aborting.compareAndSet(false, true);
@@ -1439,18 +1444,18 @@ public class BrowserMobHttpClient {
                 		LOG.info("Aborting request to {} after it failed to complete in {} ms", request.getURI().toString(), requestTimeout);
 
                     	abort();
-                    	
+
                     	return true;
                 	}
                 }
             }
-            
+
             return false;
         }
 
         public void abort() {
             request.abort();
-            
+
             // no need to close the connection -- the call to request.abort() releases the connection itself 
         }
     }
@@ -1510,6 +1515,14 @@ public class BrowserMobHttpClient {
         }
 
         return bytesCopied;
+    }
+
+    public String getHeadersFilterRegexp() {
+        return headersFilterRegexp;
+    }
+
+    public void setHeadersFilterRegexp(String headersFilterRegexp) {
+        this.headersFilterRegexp = headersFilterRegexp;
     }
 
     public boolean isCaptureBinaryContent() {

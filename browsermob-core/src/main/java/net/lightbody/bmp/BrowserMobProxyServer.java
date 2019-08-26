@@ -146,6 +146,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
     private volatile int connectTimeoutMs;
 
     /**
+     * Regexp to check request url and inject headers if url match regexp.
+     */
+    private static String headersFilterRegexp;
+
+    /**
      * The amount of time a connection to a server can remain idle while receiving data from the server.
      */
     private volatile int idleConnectionTimeoutSec;
@@ -590,6 +595,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         newHeaders.putAll(headers);
 
         this.additionalHeaders = newHeaders;
+    }
+
+    @Override
+    public void headerFilterRegexp(String headerFilterRegexp) {
+        this.headersFilterRegexp = headerFilterRegexp;
     }
 
     @Override
@@ -1052,8 +1062,8 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
         addHttpFilterFactory(new HttpFiltersSourceAdapter() {
             @Override
-            public HttpFilters filterRequest(HttpRequest originalRequest) {
-                return new AddHeadersFilter(originalRequest, additionalHeaders);
+            public HttpFilters filterRequest(HttpRequest originalRequest,ChannelHandlerContext ctx) {
+                return new AddHeadersFilter(originalRequest,ctx, additionalHeaders, headersFilterRegexp);
             }
         });
 

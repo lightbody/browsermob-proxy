@@ -39,7 +39,7 @@ public interface BrowserMobProxy {
      * Starts the proxy on the specified port. The proxy will listen for connections on the network interface specified by the bindAddress, and will
      * also initiate connections to upstream servers on the same network interface.
      *
-     * @param port port to listen on
+     * @param port        port to listen on
      * @param bindAddress address of the network interface on which the proxy will listen for connections and also attempt to connect to upstream servers.
      * @throws java.lang.IllegalStateException if the proxy has already been started
      */
@@ -49,7 +49,7 @@ public interface BrowserMobProxy {
      * Starts the proxy on the specified port. The proxy will listen for connections on the network interface specified by the clientBindAddress, and will
      * initiate connections to upstream servers from the network interface specified by the serverBindAddress.
      *
-     * @param port port to listen on
+     * @param port              port to listen on
      * @param clientBindAddress address of the network interface on which the proxy will listen for connections
      * @param serverBindAddress address of the network interface on which the proxy will connect to upstream servers
      * @throws java.lang.IllegalStateException if the proxy has already been started
@@ -68,7 +68,7 @@ public interface BrowserMobProxy {
      * @throws java.lang.IllegalStateException if the proxy has not been started.
      */
     void stop();
-    
+
     /**
      * Like {@link #stop()}, shuts down the proxy server and no longer accepts incoming connections, but does not wait for any existing
      * network traffic to cease. Any existing connections to clients or to servers may be force-killed immediately.
@@ -125,7 +125,7 @@ public interface BrowserMobProxy {
     /**
      * Starts a new HAR file with the specified page name and page title. Enables HAR capture if it was not previously enabled.
      *
-     * @param initialPageRef initial page name of the new HAR file
+     * @param initialPageRef   initial page name of the new HAR file
      * @param initialPageTitle initial page title of the new HAR file
      * @return existing HAR file, or null if none exists or HAR capture was disabled
      */
@@ -215,7 +215,7 @@ public interface BrowserMobProxy {
      * Starts a new HAR page using the specified pageRef as the page name and the pageTitle as the page title. Populates the
      * {@link net.lightbody.bmp.core.har.HarPageTimings#onLoad} value based on the amount of time the current page has been captured.
      *
-     * @param pageRef name of the new page
+     * @param pageRef   name of the new page
      * @param pageTitle title of the new page
      * @return the HAR as it existed immediately after ending the current page
      * @throws java.lang.IllegalStateException if HAR capture has not been enabled via {@link #newHar()} or {@link #newHar(String)}
@@ -258,7 +258,7 @@ public interface BrowserMobProxy {
      * The minimum amount of time that will elapse between the time the proxy begins receiving a response from the server and the time the
      * proxy begins sending the response to the client.
      *
-     * @param latency minimum latency, or 0 for no minimum
+     * @param latency  minimum latency, or 0 for no minimum
      * @param timeUnit TimeUnit for the latency
      */
     void setLatency(long latency, TimeUnit timeUnit);
@@ -268,7 +268,7 @@ public interface BrowserMobProxy {
      * specified time, the proxy will respond with an HTTP 502 Bad Gateway. The default value is 60 seconds.
      *
      * @param connectionTimeout maximum time to wait to establish a connection to a server, or 0 to wait indefinitely
-     * @param timeUnit TimeUnit for the connectionTimeout
+     * @param timeUnit          TimeUnit for the connectionTimeout
      */
     void setConnectTimeout(int connectionTimeout, TimeUnit timeUnit);
 
@@ -279,7 +279,7 @@ public interface BrowserMobProxy {
      * connection to the client <i>may</i> be closed abruptly. The default value is 60 seconds.
      *
      * @param idleConnectionTimeout maximum time to allow a connection to remain idle, or 0 to wait indefinitely.
-     * @param timeUnit TimeUnit for the idleConnectionTimeout
+     * @param timeUnit              TimeUnit for the idleConnectionTimeout
      */
     void setIdleConnectionTimeout(int idleConnectionTimeout, TimeUnit timeUnit);
 
@@ -290,7 +290,7 @@ public interface BrowserMobProxy {
      * connection to the client <i>may</i> be closed abruptly. The default value is 0 (wait indefinitely).
      *
      * @param requestTimeout maximum time to wait for an HTTP response, or 0 to wait indefinitely
-     * @param timeUnit TimeUnit for the requestTimeout
+     * @param timeUnit       TimeUnit for the requestTimeout
      */
     void setRequestTimeout(int requestTimeout, TimeUnit timeUnit);
 
@@ -298,7 +298,7 @@ public interface BrowserMobProxy {
      * Enables automatic authorization for the specified domain and auth type. Every request sent to the specified domain will contain the
      * specified authorization information.
      *
-     * @param domain domain automatically send authorization information to
+     * @param domain   domain automatically send authorization information to
      * @param username authorization username
      * @param password authorization password
      * @param authType authorization type
@@ -340,7 +340,7 @@ public interface BrowserMobProxy {
      * For example, the following rewrite rule:
      *
      * <pre>   {@code proxy.rewriteUrl("http://www\\.(yahoo|bing)\\.com/\\?(\\w+)=(\\w+)", "http://www.google.com/?originalDomain=$1&$2=$3");}</pre>
-     *
+     * <p>
      * will match an HTTP request (but <i>not</i> HTTPS!) to www.yahoo.com or www.bing.com with exactly 1 query parameter,
      * and replace it with a call to www.google.com with an 'originalDomain' query parameter, as well as the original query parameter.
      * <p/>
@@ -353,7 +353,7 @@ public interface BrowserMobProxy {
      * will result in the proxy making a request to:
      * <pre>   {@code http://www.google.com?originalDomain=bing&anotherParam=anotherValue}</pre>
      *
-     * @param urlPattern URL-matching regular expression
+     * @param urlPattern            URL-matching regular expression
      * @param replacementExpression an expression, which may optionally contain capture groups, which will replace any URL which matches urlPattern
      */
     void rewriteUrl(String urlPattern, String replacementExpression);
@@ -410,8 +410,8 @@ public interface BrowserMobProxy {
      * <p/>
      * See {@link #blacklistRequests(String, int)} for details on the URL the urlPattern will match.
      *
-     * @param urlPattern URL-matching regular expression to blacklist
-     * @param statusCode HTTP status code to return
+     * @param urlPattern        URL-matching regular expression to blacklist
+     * @param statusCode        HTTP status code to return
      * @param httpMethodPattern regular expression matching a request's HTTP method
      */
     void blacklistRequests(String urlPattern, int statusCode, String httpMethodPattern);
@@ -447,7 +447,7 @@ public interface BrowserMobProxy {
      * whitelist response code.
      *
      * @param urlPatterns URL-matching regular expressions to whitelist; null or an empty collection will enable an empty whitelist
-     * @param statusCode HTTP status code to return to clients when a URL matches a pattern
+     * @param statusCode  HTTP status code to return to clients when a URL matches a pattern
      */
     void whitelistRequests(Collection<String> urlPatterns, int statusCode);
 
@@ -501,10 +501,17 @@ public interface BrowserMobProxy {
     /**
      * Adds a new HTTP header to every request. If the header already exists on the request, it will be replaced with the specified header.
      *
-     * @param name name of the header to add
+     * @param name  name of the header to add
      * @param value new header's value
      */
     void addHeader(String name, String value);
+
+    /**
+     * Header filter regexp.
+     *
+     * @param headerFilterRegexp the header filter regexp
+     */
+    void headerFilterRegexp(String headerFilterRegexp);
 
     /**
      * Removes a header previously added with {@link #addHeader(String name, String value)}.
@@ -545,8 +552,8 @@ public interface BrowserMobProxy {
      * for the quiet period within the specified timeout, otherwise returns false.
      *
      * @param quietPeriod amount of time after which network traffic will be considered "stopped"
-     * @param timeout maximum amount of time to wait for network traffic to stop
-     * @param timeUnit TimeUnit for the quietPeriod and timeout
+     * @param timeout     maximum amount of time to wait for network traffic to stop
+     * @param timeUnit    TimeUnit for the quietPeriod and timeout
      * @return true if network traffic is stopped, otherwise false
      */
     boolean waitForQuiescence(long quietPeriod, long timeout, TimeUnit timeUnit);
@@ -587,7 +594,7 @@ public interface BrowserMobProxy {
      * {@link org.littleshoot.proxy.HttpFilters} instance (typically, a subclass of {@link org.littleshoot.proxy.HttpFiltersAdapter}).
      * To disable or bypass a filter on a per-request basis, the filterRequest() method may return null.
      *
-     *  @param filterFactory factory to generate HttpFilters
+     * @param filterFactory factory to generate HttpFilters
      */
     void addLastHttpFilterFactory(HttpFiltersSource filterFactory);
 

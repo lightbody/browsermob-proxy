@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 /**
  * Describes the legacy BrowserMob Proxy 2.0 interface. Clients <b>should not</b> implement or use this interface.
- *
+ * <p>
  * Use {@link BrowserMobProxy}.
  */
 public interface LegacyProxyServer {
@@ -121,6 +121,8 @@ public interface LegacyProxyServer {
     void clearWhitelist();
 
     void addHeader(String name, String value);
+
+    void headerFilterRegexp(String headerFilterRegexp);
 
     void setCaptureHeaders(boolean captureHeaders);
 

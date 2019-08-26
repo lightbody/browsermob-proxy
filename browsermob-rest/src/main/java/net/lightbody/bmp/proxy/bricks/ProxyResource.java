@@ -28,6 +28,7 @@ import net.lightbody.bmp.proxy.http.BrowserMobHttpResponse;
 import net.lightbody.bmp.proxy.http.RequestInterceptor;
 import net.lightbody.bmp.proxy.http.ResponseInterceptor;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.java_bandwidthlimiter.StreamManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,12 +271,14 @@ public class ProxyResource {
             return Reply.saying().notFound();
         }
 
-        Map<String, String> headers = request.read(Map.class).as(Json.class);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            proxy.addHeader(key, value);
-        }
+        Map<String, String> mappedJsonRequest = request.read(Map.class).as(Json.class);
+        mappedJsonRequest.entrySet().stream()
+                .filter(stringStringEntry -> stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp"))
+                .forEach(stringStringEntry -> proxy.addHeader(stringStringEntry.getKey(), stringStringEntry.getValue()));
+
+        mappedJsonRequest.entrySet().stream().filter(stringStringEntry ->
+                stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp") && StringUtils.isNotEmpty(stringStringEntry.getValue())).findFirst().ifPresent(stringStringEntry -> proxy.headerFilterRegexp(stringStringEntry.getValue()));
+
         return Reply.saying().ok();
     }
 

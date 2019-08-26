@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.33-SNAPSHOT</version>
+    <version>2.1.34-SNAPSHOT</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -78,9 +78,9 @@
         <groovy.version>2.5.6</groovy.version>
         <groovy-eclipse-batch.version>2.5.6-01</groovy-eclipse-batch.version>
 
-        <netty.version>4.1.34.Final</netty.version>
+        <netty.version>4.1.39.Final</netty.version>
         <!-- netty 4.1 version to use for browsermob-dist and when using the netty-4.1 profile -->
-        <netty-4.1.version>4.1.34.Final</netty-4.1.version>
+        <netty-4.1.version>4.1.39.Final</netty-4.1.version>
 
         <bouncycastle.version>1.61</bouncycastle.version>
         <java-statsd-client.version>3.0.1</java-statsd-client.version>
