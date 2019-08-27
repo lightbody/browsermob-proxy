@@ -1100,7 +1100,8 @@ public class BrowserMobHttpClient {
 				contentType.startsWith("application/javascript")  ||
 				contentType.startsWith("application/json")  ||
 				contentType.startsWith("application/xml")  ||
-				contentType.startsWith("application/xhtml+xml");
+                contentType.startsWith("application/xhtml+xml") ||
+                (contentType.startsWith("application/") && contentType.endsWith("+json"));
 	}
 
 	private void setBinaryContentOfEntry(HarEntry entry, ByteArrayOutputStream copy) {

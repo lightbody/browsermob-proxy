@@ -273,11 +273,13 @@ public class ProxyResource {
 
         Map<String, String> mappedJsonRequest = request.read(Map.class).as(Json.class);
         mappedJsonRequest.entrySet().stream()
-                .filter(stringStringEntry -> stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp"))
+                .filter(stringStringEntry -> !stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp"))
                 .forEach(stringStringEntry -> proxy.addHeader(stringStringEntry.getKey(), stringStringEntry.getValue()));
 
         mappedJsonRequest.entrySet().stream().filter(stringStringEntry ->
-                stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp") && StringUtils.isNotEmpty(stringStringEntry.getValue())).findFirst().ifPresent(stringStringEntry -> proxy.headerFilterRegexp(stringStringEntry.getValue()));
+                stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp")
+                        && StringUtils.isNotEmpty(stringStringEntry.getValue())).findFirst()
+                .ifPresent(stringStringEntry -> proxy.headerFilterRegexp(stringStringEntry.getValue()));
 
         return Reply.saying().ok();
     }
