@@ -17,20 +17,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ChainedHostResolverTest {
     @Test
@@ -62,7 +55,7 @@ public class ChainedHostResolverTest {
         ChainedHostResolver chainResolver = new ChainedHostResolver(ImmutableList.of(firstResolver, secondResolver));
 
         when(firstResolver.resolve("1.1.1.1")).thenReturn(TestConstants.addressOnesList);
-        when(secondResolver.resolve("1.1.1.1")).thenReturn(Collections.<InetAddress>emptyList());
+        when(secondResolver.resolve("1.1.1.1")).thenReturn(Collections.emptyList());
 
         Collection<InetAddress> results = chainResolver.resolve("1.1.1.1");
         assertNotNull("Resolver should not return null results", results);

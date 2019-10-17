@@ -6,7 +6,7 @@
     <parent>
         <artifactId>browsermob-proxy</artifactId>
         <groupId>net.lightbody.bmp</groupId>
-        <version>2.1.35-SNAPSHOT</version>
+        <version>2.1.36-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,7 +14,7 @@
     <name>BrowserMob Proxy Core (LittleProxy) Module</name>
 
     <properties>
-        <unit-test-jetty.version>9.4.15.v20190215</unit-test-jetty.version>
+        <unit-test-jetty.version>9.4.21.v20190926</unit-test-jetty.version>
     </properties>
 
     <build>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>dnsjava</groupId>
             <artifactId>dnsjava</artifactId>
-            <version>2.1.8</version>
+            <version>2.1.9</version>
         </dependency>
 
         <dependency>
@@ -255,7 +255,7 @@
 
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
+            <artifactId>hamcrest</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
