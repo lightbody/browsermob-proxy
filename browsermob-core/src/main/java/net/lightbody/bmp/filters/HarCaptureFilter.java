@@ -42,8 +42,8 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
 
     static {
-        if (StringUtils.isNotEmpty(System.getProperty("fluentdHost")) || StringUtils.isNotEmpty(System.getProperty("fluentPort"))) {
-            LOG = FluentLogger.getLogger("mobproxy", System.getProperty("fluentdHost", "localhost"), Integer.parseInt(System.getProperty("fluentPort", "0")));
+        if (StringUtils.isNotEmpty(System.getProperty("fluentdHost")) || StringUtils.isNotEmpty(System.getProperty("fluentdPort"))) {
+            LOG = FluentLogger.getLogger("mobproxy", System.getProperty("fluentdHost", "localhost"), Integer.parseInt(System.getProperty("fluentdPort", "0")));
         }
     }
 
