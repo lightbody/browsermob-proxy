@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.36-SNAPSHOT</version>
+    <version>2.1.36</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -73,15 +73,15 @@
 
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
 
-        <log4j.version>2.12.1</log4j.version>
+        <log4j.version>2.13.3</log4j.version>
 
-        <groovy.version>2.5.8</groovy.version>
+        <groovy.version>3.0.5</groovy.version>
         <groovy-eclipse-batch.version>2.5.8-02</groovy-eclipse-batch.version>
 
-        <netty.version>4.1.42.Final</netty.version>
+        <netty.version>4.1.51.Final</netty.version>
         <!-- netty 4.1 version to use for browsermob-dist and when using the netty-4.1 profile -->
 
-        <bouncycastle.version>1.64</bouncycastle.version>
+        <bouncycastle.version>1.66</bouncycastle.version>
         <java-statsd-client.version>3.0.1</java-statsd-client.version>
         <java.version>8</java.version>
         <additionalJOption>-Xdoclint:none</additionalJOption>
@@ -240,6 +240,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.twimba</groupId>
+                <artifactId>fluentd4log4j</artifactId>
+                <version>1.0.1</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>28.1-jre</version>
@@ -276,12 +282,12 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>3.1.0</version>
+                <version>3.5.2</version>
             </dependency>
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
-                <version>1.10.1</version>
+                <version>1.10.14</version>
             </dependency>
 
             <dependency>
@@ -316,7 +322,7 @@
             <dependency>
                 <groupId>org.mock-server</groupId>
                 <artifactId>mockserver-netty</artifactId>
-                <version>5.5.1</version>
+                <version>5.11.1</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
@@ -352,13 +358,13 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.10</version>
+                <version>4.5.12</version>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
-                <version>4.5.10</version>
+                <version>4.5.12</version>
             </dependency>
 
             <dependency>
