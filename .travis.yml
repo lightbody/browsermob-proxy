@@ -6,7 +6,7 @@ jdk:
     # Not running tests against openjdk7, since the SunEC is not included in travis-ci's version of openjdk7.
     # Not running tests against oraclejdk7, since travis-ci no longer provides it.
     # - openjdk7
-  - oraclejdk8
+  - openjdk11
 
 cache:
     directories:

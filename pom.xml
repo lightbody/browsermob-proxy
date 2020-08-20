@@ -83,7 +83,7 @@
 
         <bouncycastle.version>1.66</bouncycastle.version>
         <java-statsd-client.version>3.0.1</java-statsd-client.version>
-        <java.version>8</java.version>
+        <java.version>11</java.version>
         <additionalJOption>-Xdoclint:none</additionalJOption>
     </properties>
 

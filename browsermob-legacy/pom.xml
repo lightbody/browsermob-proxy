@@ -14,7 +14,7 @@
     <name>BrowserMob Proxy Legacy (Jetty) Module</name>
 
     <properties>
-        <unit-test-jetty.version>9.4.15.v20190215</unit-test-jetty.version>
+        <unit-test-jetty.version>9.4.31.v20200723</unit-test-jetty.version>
         <use.littleproxy>true</use.littleproxy>
     </properties>
 
