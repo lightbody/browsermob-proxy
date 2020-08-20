@@ -43,7 +43,7 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
 
     static {
         if (StringUtils.isNotEmpty(System.getProperty("fluentdHost")) || StringUtils.isNotEmpty(System.getProperty("fluentdPort"))) {
-            LOG = FluentLogger.getLogger("mobproxy", System.getProperty("fluentdHost", "localhost"), Integer.parseInt(System.getProperty("fluentdPort", "0")));
+            LOG = FluentLogger.getLogger("mobproxy", System.getProperty("fluentdHost"), Integer.parseInt(System.getProperty("fluentdPort")));
         }
     }
 
