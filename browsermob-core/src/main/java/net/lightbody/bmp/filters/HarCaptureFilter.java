@@ -17,10 +17,11 @@ import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.proxy.CaptureType;
 import net.lightbody.bmp.util.BeansJsonMapper;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.fluentd.logger.FluentLogger;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -30,11 +31,21 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static net.lightbody.bmp.filters.StatsDMetricsFilter.*;
+import static net.lightbody.bmp.filters.StatsDMetricsFilter.getProxyPrefix;
+import static net.lightbody.bmp.filters.StatsDMetricsFilter.getStatsDHost;
+import static net.lightbody.bmp.filters.StatsDMetricsFilter.getStatsDPort;
+import static net.lightbody.bmp.filters.StatsDMetricsFilter.prepareMetric;
 
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
+    private static FluentLogger LOG;
     private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
+
+    static {
+        if (StringUtils.isNotEmpty(System.getProperty("fluentdHost")) || StringUtils.isNotEmpty(System.getProperty("fluentdPort"))) {
+            LOG = FluentLogger.getLogger("mobproxy", System.getProperty("fluentdHost"), Integer.parseInt(System.getProperty("fluentdPort")));
+        }
+    }
 
     /**
      * The currently active HAR at the time the current request is received.
@@ -769,15 +780,17 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected static void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
-        if ((Objects.isNull(isAlreadyLoggedIn.get()) || isAlreadyLoggedIn.get().hashCode() != request.hashCode())
+        if (Objects.nonNull(LOG) &&
+                (Objects.isNull(isAlreadyLoggedIn.get()) || isAlreadyLoggedIn.get().hashCode() != request.hashCode())
                 && (response.getStatus() >= 500 || response.getStatus() == 0)) {
-            MDC.put("caller", "mobproxy");
-            MDC.put("http_response_code", String.valueOf(response.getStatus()));
-            MDC.put("http_host", request.getUrl());
-            MDC.put("request_details", BeansJsonMapper.getJsonString(request));
-            MDC.put("method", request.getMethod());
-            MDC.put("response", BeansJsonMapper.getJsonString(response));
-            log.error("received bad status code");
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("caller", "mobproxy");
+            data.put("http_response_code", String.valueOf(response.getStatus()));
+            data.put("http_host", request.getUrl());
+            data.put("request_details", BeansJsonMapper.getJsonString(request));
+            data.put("method", request.getMethod());
+            data.put("response", BeansJsonMapper.getJsonString(response));
+            LOG.log("failure", data);
             isAlreadyLoggedIn.set(request);
         }
     }
