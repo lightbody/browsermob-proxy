@@ -396,7 +396,7 @@ When you build the latest code from source, you'll have access to the latest sna
     <dependency>
         <groupId>net.lightbody.bmp</groupId>
         <artifactId>browsermob-core</artifactId>
-        <version>2.1.37</version>
+        <version2.1.38</version>
         <scope>test</scope>
     </dependency>
 ```

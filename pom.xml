@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.37</version>
+    <version>2.1.38</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -177,11 +177,11 @@
                             <inherited>false</inherited>
                             <phase>install</phase>
                             <configuration>
-                                <file>${basedir}/resources/jar/littleproxy-1.1.6.jar</file>
+                                <file>${basedir}/resources/jar/littleproxy-1.1.7.jar</file>
                                 <repositoryLayout>default</repositoryLayout>
                                 <groupId>org.littleshoot</groupId>
                                 <artifactId>littleproxy</artifactId>
-                                <version>1.1.6</version>
+                                <version>1.1.7</version>
                                 <packaging>jar</packaging>
                             </configuration>
                             <goals>
@@ -239,11 +239,6 @@
                 <version>${logstash-gelf.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.fluentd</groupId>
-                <artifactId>fluent-logger</artifactId>
-                <version>0.3.4</version>
-            </dependency>
 
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -315,7 +310,7 @@
             <dependency>
                 <groupId>org.littleshoot</groupId>
                 <artifactId>littleproxy</artifactId>
-                <version>1.1.6</version>
+                <version>1.1.7</version>
             </dependency>
 
 
