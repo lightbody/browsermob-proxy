@@ -27,8 +27,8 @@ public class HttpsHostCaptureFilter extends HttpFiltersAdapter {
             HttpRequest httpRequest = (HttpRequest) httpObject;
 
             if (ProxyUtils.isCONNECT(httpRequest)) {
-                Attribute<String> hostname = ctx.attr(AttributeKey.<String>valueOf(HttpsAwareFiltersAdapter.HOST_ATTRIBUTE_NAME));
-                String hostAndPort = httpRequest.getUri();
+                Attribute<String> hostname = ctx.attr(AttributeKey.valueOf(HttpsAwareFiltersAdapter.HOST_ATTRIBUTE_NAME));
+                String hostAndPort = httpRequest.uri();
 
                 // CONNECT requests contain the port, even when using the default port. a sensible default is to remove the
                 // default port, since in most cases it is not explicitly specified and its presence (in a HAR file, for example)

@@ -28,26 +28,18 @@ import net.lightbody.bmp.proxy.http.BrowserMobHttpResponse;
 import net.lightbody.bmp.proxy.http.RequestInterceptor;
 import net.lightbody.bmp.proxy.http.ResponseInterceptor;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.java_bandwidthlimiter.StreamManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
 @At("/proxy")
 @Service
@@ -279,12 +271,16 @@ public class ProxyResource {
             return Reply.saying().notFound();
         }
 
-        Map<String, String> headers = request.read(Map.class).as(Json.class);
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            proxy.addHeader(key, value);
-        }
+        Map<String, String> mappedJsonRequest = request.read(Map.class).as(Json.class);
+        mappedJsonRequest.entrySet().stream()
+                .filter(stringStringEntry -> !stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp"))
+                .forEach(stringStringEntry -> proxy.addHeader(stringStringEntry.getKey(), stringStringEntry.getValue()));
+
+        mappedJsonRequest.entrySet().stream().filter(stringStringEntry ->
+                stringStringEntry.getKey().equalsIgnoreCase("headersFilterRegexp")
+                        && StringUtils.isNotEmpty(stringStringEntry.getValue())).findFirst()
+                .ifPresent(stringStringEntry -> proxy.headerFilterRegexp(stringStringEntry.getValue()));
+
         return Reply.saying().ok();
     }
 
@@ -684,12 +680,14 @@ public class ProxyResource {
 
     public static class ProxyListDescriptor {
         private Collection<ProxyDescriptor> proxyList;
+        private int numberOfProxies;
 
         public ProxyListDescriptor() {
         }
 
         public ProxyListDescriptor(Collection<ProxyDescriptor> proxyList) {
             this.proxyList = proxyList;
+            this.numberOfProxies = proxyList.size();
         }
 
         public Collection<ProxyDescriptor> getProxyList() {
@@ -698,6 +696,15 @@ public class ProxyResource {
 
         public void setProxyList(Collection<ProxyDescriptor> proxyList) {
             this.proxyList = proxyList;
+        }
+
+        public int getNumberOfProxies() {
+            return numberOfProxies;
+        }
+
+        public ProxyListDescriptor setNumberOfProxies(int numberOfProxies) {
+            this.numberOfProxies = numberOfProxies;
+            return this;
         }
     }
 

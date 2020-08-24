@@ -3,6 +3,7 @@ package net.lightbody.bmp.core.har;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +18,8 @@ public class HarEntry {
     private volatile HarCache cache = new HarCache();
     private volatile HarTimings timings = new HarTimings();
     private volatile String serverIPAddress;
+    @JsonProperty("time")
+    private volatile long time;
     private volatile String connection;
     private volatile String comment = "";
 
@@ -157,4 +160,10 @@ public class HarEntry {
     public void setConnection(String connection) {
         this.connection = connection;
     }
+
+    public HarEntry setTime(long time) {
+        this.time = time;
+        return this;
+    }
+
 }

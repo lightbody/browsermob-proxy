@@ -3,6 +3,7 @@ package net.lightbody.bmp.util;
 import com.google.common.io.BaseEncoding;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
+import org.brotli.dec.BrotliInputStream;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -49,7 +51,7 @@ public class BrowserMobHttpUtil {
      *     Likewise, special treatment of ISO-8859-1 has been removed from the
      *     Accept-Charset header field.
      * </pre>
-     *
+     * <p>
      * Technically, we would have to determine the charset on a per-content-type basis, but generally speaking, UTF-8 is a
      * pretty safe default. (NOTE: In the previous HTTP/1.1 spec, section 3.7.1, the default charset was defined as ISO-8859-1.)
      */
@@ -78,7 +80,7 @@ public class BrowserMobHttpUtil {
     /**
      * Decompresses the gzipped byte stream.
      *
-     * @param fullMessage gzipped byte stream to decomress
+     * @param fullMessage gzipped byte stream to decompress
      * @return decompressed bytes
      * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
      */
@@ -112,6 +114,42 @@ public class BrowserMobHttpUtil {
     }
 
     /**
+     * Decompresses the brotli byze stream
+     *
+     * @param fullMessage brotli byte stream to decompress
+     * @return decompressed bytes
+     * @throws DecompressionException thrown if the fullMessage cannot be read or decompressed for any reason
+     */
+    public static byte[] decompressBrotliContents(byte[] fullMessage) throws DecompressionException {
+        InputStream brotliReader = null;
+        ByteArrayOutputStream uncompressed;
+        try {
+            brotliReader = new BrotliInputStream(new ByteArrayInputStream(fullMessage));
+
+            uncompressed = new ByteArrayOutputStream(fullMessage.length);
+
+            byte[] decompressBuffer = new byte[DECOMPRESS_BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = brotliReader.read(decompressBuffer)) > -1) {
+                uncompressed.write(decompressBuffer, 0, bytesRead);
+            }
+
+            fullMessage = uncompressed.toByteArray();
+        } catch (IOException e) {
+            throw new DecompressionException("Unable to decompress response", e);
+        } finally {
+            try {
+                if (brotliReader != null) {
+                    brotliReader.close();
+                }
+            } catch (IOException e) {
+                log.warn("Unable to close brotli stream", e);
+            }
+        }
+        return fullMessage;
+    }
+
+    /**
      * Returns true if the content type string indicates textual content. Currently these are any Content-Types that start with one of the
      * following:
      * <pre>
@@ -129,11 +167,12 @@ public class BrowserMobHttpUtil {
     public static boolean hasTextualContent(String contentType) {
         return contentType != null &&
                 (contentType.startsWith("text/") ||
-                contentType.startsWith("application/x-javascript") ||
-                contentType.startsWith("application/javascript")  ||
-                contentType.startsWith("application/json")  ||
-                contentType.startsWith("application/xml")  ||
-                contentType.startsWith("application/xhtml+xml")
+                        contentType.startsWith("application/x-javascript") ||
+                        contentType.startsWith("application/javascript") ||
+                        contentType.startsWith("application/json") ||
+                        contentType.startsWith("application/xml") ||
+                        contentType.startsWith("application/xhtml+xml") ||
+                        (contentType.startsWith("application/") && contentType.endsWith("+json"))
                 );
     }
 
@@ -184,8 +223,8 @@ public class BrowserMobHttpUtil {
 
         MediaType mediaType;
         try {
-             mediaType = MediaType.parse(contentTypeHeader);
-        } catch (IllegalArgumentException e) {
+            mediaType = MediaType.parse(contentTypeHeader);
+        } catch (java.lang.IllegalArgumentException e) {
             log.info("Unable to parse Content-Type header: {}. Content-Type header will be ignored.", contentTypeHeader, e);
             return null;
         }
@@ -207,14 +246,14 @@ public class BrowserMobHttpUtil {
      */
     public static String getRawPathAndParamsFromRequest(HttpRequest httpRequest) throws URISyntaxException {
         // if this request's URI contains a full URI (including scheme, host, etc.), strip away the non-path components
-        if (HttpUtil.startsWithHttpOrHttps(httpRequest.getUri())) {
-            return getRawPathAndParamsFromUri(httpRequest.getUri());
+        if (HttpUtil.startsWithHttpOrHttps(httpRequest.uri())) {
+            return getRawPathAndParamsFromUri(httpRequest.uri());
         } else {
             // to provide consistent validation behavior for URIs that contain a scheme and those that don't, attempt to parse
             // the URI, even though we discard the parsed URI object
-            new URI(httpRequest.getUri());
+            new URI(httpRequest.uri());
 
-            return httpRequest.getUri();
+            return httpRequest.uri();
         }
     }
 
@@ -246,7 +285,7 @@ public class BrowserMobHttpUtil {
      * @return true if the response is a redirect, otherwise false
      */
     public static boolean isRedirect(HttpResponse httpResponse) {
-        switch (httpResponse.getStatus().code()) {
+        switch (httpResponse.status().code()) {
             case 300:
             case 301:
             case 302:
@@ -269,7 +308,7 @@ public class BrowserMobHttpUtil {
      * parsing the hostname, but makes no guarantees. In general, it should be validated externally, if necessary.
      *
      * @param hostWithPort string containing a hostname and optional port
-     * @param portNumber port to remove from the string
+     * @param portNumber   port to remove from the string
      * @return string with the specified port removed, or the original string if it did not contain the portNumber
      */
     public static String removeMatchingPort(String hostWithPort, int portNumber) {

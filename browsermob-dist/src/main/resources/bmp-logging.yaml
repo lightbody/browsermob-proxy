@@ -8,30 +8,41 @@ configuration:
       name: console
       target: SYSTEM_OUT
       PatternLayout:
-        pattern: "[%-5level %date{ISO8601} %logger] (%thread) %msg %xThrowable%n"
-    file:
-      -
-        name: file
-        fileName: bmp.log
-        PatternLayout:
-          pattern: "[%-5level %date{ISO8601} %logger] (%thread) %msg %xThrowable%n"
-        append: false
+        pattern: "[%-5level %date{ISO8601} %c{1}] %msg %xThrowable%n"
+    gelf:
+      - name: gelf
+        host: tcp:localhost
+        port: 12204
+        filterStackTrace: true
+        mdcProfiling: true
+        includeFullMdc: true
+        facility: mobproxy
+        version: 1.1
+        originHost: "%host{fqdn}"
+        maximumMessageSize: "8192"
+        extractStackTrace: false
+        Field:
+          - name: simpleClassName
+            pattern: "%C{1}"
+          - name: server
+            pattern: "%host"
+          - name: timestamp
+            pattern: "%date{ISO8601}"
+
+
   loggers:
     logger:
-      -
-        name: net.lightbody.bmp.proxy.jetty.util.ThreadedServer
-        level: warn
+      - name: net.lightbody.bmp.proxy.jetty.util.ThreadedServer
+        level: fatal
         additivity: false
-      -
-        name: net.lightbody.bmp
+      - name: org.littleshoot.proxy
         # to suppress unwanted BMP logging statements, set the level below for the source logger to WARN or ERROR.
         # to enable more verbose logging, set the level to DEBUG or TRACE.
-        level: info
+        level: fatal
+
     root:
       # to suppress unwanted logging statements globally, set the level below to WARN or ERROR.
-      level: info
+      level: error
       appender-ref:
-        -
-          ref: console
-        -
-          ref: file
+        - ref: console
+        - ref: gelf

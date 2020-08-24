@@ -35,6 +35,7 @@ public class ProxyManager {
     private int lastPort;
     private final int minPort;
     private final int maxPort;
+    private final int maxResponseSizeBytes;
     private final Provider<LegacyProxyServer> proxyServerProvider;
     // retain a reference to the Cache to allow the ProxyCleanupTask to .cleanUp(), since asMap() is just a view into the cache.
     // it would seem to make sense to pass the newly-built Cache directly to the ProxyCleanupTask and have it retain a WeakReference to it, and
@@ -93,24 +94,23 @@ public class ProxyManager {
     }
 
     @Inject
-    public ProxyManager(Provider<LegacyProxyServer> proxyServerProvider, @Named("minPort") Integer minPort, @Named("maxPort") Integer maxPort, final @Named("ttl") Integer ttl) {
+    public ProxyManager(Provider<LegacyProxyServer> proxyServerProvider, @Named("minPort") Integer minPort, @Named("maxPort") Integer maxPort, final @Named("ttl") Integer ttl, final @Named("maxResponseSizeBytes") Integer maxResponseSizeBytes) {
         this.proxyServerProvider = proxyServerProvider;
         this.minPort = minPort;
         this.maxPort = maxPort;
         this.lastPort = maxPort;
+        this.maxResponseSizeBytes = maxResponseSizeBytes;
         if (ttl > 0) {
             // proxies should be evicted after the specified ttl, so set up an evicting cache and a listener to stop the proxies when they're evicted
-            RemovalListener<Integer, LegacyProxyServer> removalListener = new RemovalListener<Integer, LegacyProxyServer>() {
-                public void onRemoval(RemovalNotification<Integer, LegacyProxyServer> removal) {
-                    try {
-                        LegacyProxyServer proxy = removal.getValue();
-                        if (proxy != null) {
-                            LOG.info("Expiring ProxyServer on port {} after {} seconds without activity", proxy.getPort(), ttl);
-                            proxy.stop();
-                        }
-                    } catch (Exception ex) {
-                        LOG.warn("Error while stopping an expired proxy on port " + removal.getKey(), ex);
+            RemovalListener<Integer, LegacyProxyServer> removalListener = removal  -> {
+                try {
+                    LegacyProxyServer proxy = removal.getValue();
+                    if (proxy != null) {
+                        LOG.info("Expiring ProxyServer on port {} after {} seconds without activity", proxy.getPort(), ttl);
+                        proxy.stop();
                     }
+                } catch (Exception ex) {
+                    LOG.warn("Error while stopping an expired proxy on port " + removal.getKey(), ex);
                 }
             };
 

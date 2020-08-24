@@ -15,13 +15,12 @@
 
 package net.lightbody.bmp.proxy.jetty.http;
 
-import com.sun.net.ssl.*;
 import net.lightbody.bmp.proxy.jetty.log.LogFactory;
 import net.lightbody.bmp.proxy.jetty.util.InetAddrPort;
 import net.lightbody.bmp.proxy.jetty.util.Password;
 import org.apache.commons.logging.Log;
 
-import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
@@ -30,25 +29,26 @@ import java.security.Security;
 
 
 /* ------------------------------------------------------------ */
-/** SSL Socket Listener for Sun's JSSE.
- *
+
+/**
+ * SSL Socket Listener for Sun's JSSE.
+ * <p>
  * This specialization of JsseListener is an specific listener
  * using the Sun reference implementation.
- *
+ * <p>
  * This is heavily based on the work from Court Demas, which in
  * turn is based on the work from Forge Research.
  *
- * @version $Id: SunJsseListener.java,v 1.20 2005/08/13 00:01:24 gregwilkins Exp $
- * @deprecated Use org.mortbay.http.SslListener
  * @author Greg Wilkins (gregw@mortbay.com)
  * @author Court Demas (court@kiwiconsulting.com)
  * @author Forge Research Pty Ltd  ACN 003 491 576
+ * @version $Id: SunJsseListener.java,v 1.20 2005/08/13 00:01:24 gregwilkins Exp $
+ * @deprecated Use org.mortbay.http.SslListener
  **/
-public class SunJsseListener extends JsseListener
-{
+public class SunJsseListener extends JsseListener {
     private static Log log = LogFactory.getLog(SunJsseListener.class);
 
-    private String _keystore=DEFAULT_KEYSTORE ;
+    private String _keystore = DEFAULT_KEYSTORE;
     private transient Password _password;
     private transient Password _keypassword;
     private String _keystore_type = DEFAULT_KEYSTORE_TYPE;
@@ -56,149 +56,136 @@ public class SunJsseListener extends JsseListener
     private String _keystore_provider_class = DEFAULT_KEYSTORE_PROVIDER_CLASS;
     private boolean _useDefaultTrustStore = false;
 
-    /* ------------------------------------------------------------ */
-    static
-    {
-        Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-    }
 
     /* ------------------------------------------------------------ */
-    public void setKeystore(String keystore)
-    {
+    public void setKeystore(String keystore) {
         _keystore = keystore;
     }
-    
+
     /* ------------------------------------------------------------ */
-    public String getKeystore()
-    {
+    public String getKeystore() {
         return _keystore;
-    }
-    
-    /* ------------------------------------------------------------ */
-    public void setPassword(String password)
-    {
-        _password = Password.getPassword(PASSWORD_PROPERTY,password,null);
     }
 
     /* ------------------------------------------------------------ */
-    public void setKeyPassword(String password)
-    {
-        _keypassword = Password.getPassword(KEYPASSWORD_PROPERTY,password,null);
+    public void setPassword(String password) {
+        _password = Password.getPassword(PASSWORD_PROPERTY, password, null);
     }
-    
-    
+
     /* ------------------------------------------------------------ */
-    public void setKeystoreType(String keystore_type)
-    {
+    public void setKeyPassword(String password) {
+        _keypassword = Password.getPassword(KEYPASSWORD_PROPERTY, password, null);
+    }
+
+
+    /* ------------------------------------------------------------ */
+    public void setKeystoreType(String keystore_type) {
         _keystore_type = keystore_type;
     }
-    
+
     /* ------------------------------------------------------------ */
-    public String getKeystoreType()
-    {
+    public String getKeystoreType() {
         return _keystore_type;
     }
 
     /* ------------------------------------------------------------ */
-    public void setKeystoreProviderName(String name)
-    {
+    public void setKeystoreProviderName(String name) {
         _keystore_provider_name = name;
     }
 
     /* ------------------------------------------------------------ */
-    public String getKeystoreProviderName()
-    {
+    public String getKeystoreProviderName() {
         return _keystore_provider_name;
     }
 
     /* ------------------------------------------------------------ */
-    public String getKeystoreProviderClass()
-    {
+    public String getKeystoreProviderClass() {
         return _keystore_provider_class;
     }
 
     /* ------------------------------------------------------------ */
-    public void setKeystoreProviderClass(String classname)
-    {
+    public void setKeystoreProviderClass(String classname) {
         _keystore_provider_class = classname;
     }
 
     /* ------------------------------------------------------------ */
+
     /**
      * Gets the default trust store flag.
      *
      * @return true if the default truststore will be used to initialize the
      * TrustManager, false otherwise.
      */
-    public boolean getUseDefaultTrustStore()
-    {
+    public boolean getUseDefaultTrustStore() {
         return _useDefaultTrustStore;
     }
 
     /* ------------------------------------------------------------ */
+
     /**
      * Set a flag to determine if the default truststore should be used to
      * initialize the TrustManager.  The default truststore will typically be
      * the ${JAVA_HOME}/jre/lib/security/cacerts.
      *
      * @param flag if true, the default truststore will be used.  If false, the
-     * configured keystore will be used as the truststore.
+     *             configured keystore will be used as the truststore.
      */
-    public void setUseDefaultTrustStore(boolean flag)
-    {
+    public void setUseDefaultTrustStore(boolean flag) {
         _useDefaultTrustStore = flag;
     }
 
     /* ------------------------------------------------------------ */
-    /** Constructor. 
+
+    /**
+     * Constructor.
      */
-    public SunJsseListener()
-    {
+    public SunJsseListener() {
         super();
     }
 
     /* ------------------------------------------------------------ */
-    /** Constructor. 
-     * @param p_address 
+
+    /**
+     * Constructor.
+     *
+     * @param p_address
      */
-    public SunJsseListener(InetAddrPort p_address)
-    {
-        super( p_address);
+    public SunJsseListener(InetAddrPort p_address) {
+        super(p_address);
     }
-    
+
     /* ------------------------------------------------------------ */
-    /* 
-     * @return 
-     * @exception Exception 
+    /*
+     * @return
+     * @exception Exception
      */
     protected SSLServerSocketFactory createFactory()
-        throws Exception
-    {
-        _keystore = System.getProperty( KEYSTORE_PROPERTY,_keystore);
-        
-        log.info(KEYSTORE_PROPERTY+"="+_keystore);
+            throws Exception {
+        _keystore = System.getProperty(KEYSTORE_PROPERTY, _keystore);
 
-        if (_password==null)
-            _password = Password.getPassword(PASSWORD_PROPERTY,null,null);
-        log.info(PASSWORD_PROPERTY+"="+_password.toStarString());
-        
-        if (_keypassword==null)
+        log.info(KEYSTORE_PROPERTY + "=" + _keystore);
+
+        if (_password == null)
+            _password = Password.getPassword(PASSWORD_PROPERTY, null, null);
+        log.info(PASSWORD_PROPERTY + "=" + _password.toStarString());
+
+        if (_keypassword == null)
             _keypassword = Password.getPassword(KEYPASSWORD_PROPERTY,
-                                                null,
-                                                _password.toString());
-        log.info(KEYPASSWORD_PROPERTY+"="+_keypassword.toStarString());
+                    null,
+                    _password.toString());
+        log.info(KEYPASSWORD_PROPERTY + "=" + _keypassword.toStarString());
 
 
         KeyStore ks = null;
 
-        log.info(KEYSTORE_TYPE_PROPERTY+"="+_keystore_type);
-        
+        log.info(KEYSTORE_TYPE_PROPERTY + "=" + _keystore_type);
+
         if (_keystore_provider_class != null) {
             // find provider.
             // avoid creating another instance if already installed in Security.
             java.security.Provider[] installed_providers = Security.getProviders();
             java.security.Provider myprovider = null;
-            for (int i=0; i < installed_providers.length; i++) {
+            for (int i = 0; i < installed_providers.length; i++) {
                 if (installed_providers[i].getClass().getName().equals(_keystore_provider_class)) {
                     myprovider = installed_providers[i];
                     break;
@@ -209,37 +196,37 @@ public class SunJsseListener extends JsseListener
                 myprovider = (java.security.Provider) Class.forName(_keystore_provider_class).newInstance();
                 Security.addProvider(myprovider);
             }
-            log.info(KEYSTORE_PROVIDER_CLASS_PROPERTY+"="+_keystore_provider_class);
-            ks = KeyStore.getInstance(_keystore_type,myprovider.getName());
+            log.info(KEYSTORE_PROVIDER_CLASS_PROPERTY + "=" + _keystore_provider_class);
+            ks = KeyStore.getInstance(_keystore_type, myprovider.getName());
         } else if (_keystore_provider_name != null) {
-            log.info(KEYSTORE_PROVIDER_NAME_PROPERTY+"="+_keystore_provider_name);
-            ks = KeyStore.getInstance(_keystore_type,_keystore_provider_name);
+            log.info(KEYSTORE_PROVIDER_NAME_PROPERTY + "=" + _keystore_provider_name);
+            ks = KeyStore.getInstance(_keystore_type, _keystore_provider_name);
         } else {
             ks = KeyStore.getInstance(_keystore_type);
-            log.info(KEYSTORE_PROVIDER_NAME_PROPERTY+"=[DEFAULT]");
+            log.info(KEYSTORE_PROVIDER_NAME_PROPERTY + "=[DEFAULT]");
         }
-        
-        ks.load( new FileInputStream( new File( _keystore ) ),
-                 _password.toString().toCharArray());
-        
-        KeyManagerFactory km = KeyManagerFactory.getInstance( "SunX509","SunJSSE"); 
-        km.init( ks, _keypassword.toString().toCharArray() );
-        KeyManager[] kma = km.getKeyManagers();                        
-        
-        TrustManagerFactory tm = TrustManagerFactory.getInstance("SunX509","SunJSSE");
+
+        ks.load(new FileInputStream(new File(_keystore)),
+                _password.toString().toCharArray());
+
+        KeyManagerFactory km = KeyManagerFactory.getInstance("SunX509", "SunJSSE");
+        km.init(ks, _keypassword.toString().toCharArray());
+        KeyManager[] kma = km.getKeyManagers();
+
+        TrustManagerFactory tm = TrustManagerFactory.getInstance("SunX509", "SunJSSE");
         if (_useDefaultTrustStore) {
-            tm.init( (KeyStore)null );
+            tm.init((KeyStore) null);
         } else {
-            tm.init( ks );
+            tm.init(ks);
         }
 
         TrustManager[] tma = tm.getTrustManagers();
-        
-        SSLContext sslc = SSLContext.getInstance( "SSL" ); 
-        sslc.init( kma, tma, SecureRandom.getInstance("SHA1PRNG"));
-        
+
+        SSLContext sslc = SSLContext.getInstance("SSL");
+        sslc.init(kma, tma, SecureRandom.getInstance("SHA1PRNG"));
+
         SSLServerSocketFactory ssfc = sslc.getServerSocketFactory();
-        log.info("SSLServerSocketFactory="+ssfc);
+        log.info("SSLServerSocketFactory=" + ssfc);
         return ssfc;
     }
 }

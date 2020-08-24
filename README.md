@@ -144,7 +144,7 @@ Set a URL to blacklist | PUT | */proxy/[port]/blacklist* |<p>*regex* - The black
 Clears all URL patterns from the blacklist | DELETE | */proxy/[port]/blacklist* ||
 Limit the bandwidth through the proxy on the *[port]* | PUT | */proxy/[port]/limit* |<p>*downstreamKbps* - Sets the downstream bandwidth limit in kbps. Optional.</p><p>*upstreamKbps* - Sets the upstream bandwidth limit kbps. Optional, by default unlimited.</p><p>*downstreamMaxKB* - Specifies how many kilobytes in total the client is allowed to download through the proxy. Optional, by default unlimited.</p><p>*upstreamMaxKB* - Specifies how many kilobytes in total the client is allowed to upload through the proxy. Optional, by default unlimited.</p><p>*latency* - Add the given latency to each HTTP request. Optional, by default all requests are invoked without latency.</p><p>*enable* - A boolean that enable bandwidth limiter. Optional, by default to "false", but setting any of the properties above will implicitly enable throttling</p><p>*payloadPercentage* - Specifying what percentage of data sent is payload, e.g. use this to take into account overhead due to tcp/ip. Optional.</p><p>*maxBitsPerSecond* - The max bits per seconds you want this instance of StreamManager to respect. Optional.</p>
 Displays the amount of data remaining to be uploaded/downloaded until the limit is reached | GET | */proxy/[port]/limit* ||
-Set and override HTTP Request headers | POST | */proxy/[port]/headers* | Payload data should be **JSON** encoded set of headers. Where key is a header name (such as "User-Agent") and  value is a value of HTTP header to setup (such as "BrowserMob-Agent"). Example: `{"User-Agent": "BrowserMob-Agent"}`|
+Set and override HTTP Request headers | POST | */proxy/[port]/headers* | Payload data should be **JSON** encoded set of headers and optionally `headersFilterRegexp: .*.*` . Where key is a header name (such as "User-Agent") and  value is a value of HTTP header to setup (such as "BrowserMob-Agent"). Example: `{"User-Agent": "BrowserMob-Agent"}`|
 Overrides normal DNS lookups and remaps the given hosts with the associated IP address | POST | */proxy/[port]/hosts* | Payload data should be **JSON** encoded set of hosts. Where key is a host name (such as "example.com") and value is a IP address which associatied with host hame (such as "1.2.3.4"'). Example: `{"example.com": "1.2.3.4"}`|
 Sets automatic basic authentication for the specified domain | POST | */proxy/[port]/auth/basic/[domain]* | Payload data should be **JSON** encoded username and password name/value pairs. Example: `{"username": "myUsername", "password": "myPassword"}`|
 Wait till all request are being made | PUT | */proxy/[port]/wait* |<p>*quietPeriodInMs* - Wait till all request are being made. Optional.</p><p>*timeoutInMs* - Sets quiet period in milliseconds. Optional.</p>|
@@ -190,6 +190,7 @@ system properties will be used to specify the upstream proxy.
  - -proxyPortRange \<from\>-\<to\>
   - Range of ports reserved for proxies. Only applies if *port* parameter is not supplied in the POST request. Default values are \<port\>+1 to \<port\>+500+1.
  - -ttl \<seconds\>
+ - -maxResponseSizeBytes max size of response in bytes by default 2097152 (2 MB)
   - Proxy will be automatically deleted after a specified time period. Off by default.
 
 ### Embedded Mode
@@ -395,7 +396,7 @@ When you build the latest code from source, you'll have access to the latest sna
     <dependency>
         <groupId>net.lightbody.bmp</groupId>
         <artifactId>browsermob-core</artifactId>
-        <version>2.1.6-SNAPSHOT</version>
+        <version>2.1.38</version>
         <scope>test</scope>
     </dependency>
 ```

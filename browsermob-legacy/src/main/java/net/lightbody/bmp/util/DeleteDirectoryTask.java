@@ -32,7 +32,7 @@ public class DeleteDirectoryTask implements Runnable {
         try {
             Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     try {
                         Files.delete(file);
                     } catch (IOException e) {
@@ -43,7 +43,7 @@ public class DeleteDirectoryTask implements Runnable {
                 }
 
                 @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
                     try {
                         Files.delete(dir);
                     } catch (IOException e) {

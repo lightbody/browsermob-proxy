@@ -34,16 +34,11 @@ public class TrustingSSLSocketFactory extends SSLConnectionSocketFactory {
     private StreamManager streamManager;
 
     static {
-        sslContext = SSLContexts.createDefault();
+        sslContext = org.apache.http.ssl.SSLContexts.createDefault();
 		try {
-			sslContext = SSLContexts.custom().loadTrustMaterial(null, 
-				new TrustStrategy() {
-					@Override
-				    public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-				        return true;
-				    }
-				}
-			).build();
+			sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null,
+                    (TrustStrategy) (chain, authType) -> true
+            ).build();
 			
 			sslContext.init(null, new TrustManager[]{new TrustEverythingSSLTrustManager()}, null);
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {

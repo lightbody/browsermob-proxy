@@ -5,11 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import net.lightbody.bmp.core.har.Har;
-import net.lightbody.bmp.core.har.HarEntry;
-import net.lightbody.bmp.core.har.HarRequest;
-import net.lightbody.bmp.core.har.HarResponse;
-import net.lightbody.bmp.core.har.HarTimings;
+import net.lightbody.bmp.core.har.*;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.util.HttpUtil;
@@ -31,7 +27,6 @@ import java.util.concurrent.TimeUnit;
  * static methods. This filter also handles HTTP CONNECT errors and creates HAR entries for those errors, since there
  * would otherwise not be any record in the HAR of the error (if the CONNECT fails, there will be no subsequent "real"
  * request in which to record the error).
- *
  */
 public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implements ModifiedRequestAwareFilter {
     private static final Logger log = LoggerFactory.getLogger(HttpConnectHarCaptureFilter.class);
@@ -104,7 +99,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
     /**
      * Stores SSL connection timing information from HTTP CONNNECT requests. This timing information is stored in the first HTTP request
      * after the CONNECT, not in the CONNECT itself, so it needs to be stored across requests.
-     *
+     * <p>
      * This is the only state stored across multiple requests.
      */
     private static final ConcurrentMap<InetSocketAddress, HttpConnectTiming> httpConnectTimes =
@@ -159,6 +154,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
             harEntry.getTimings().setDns(System.nanoTime() - dnsResolutionStartedNanos, TimeUnit.NANOSECONDS);
         }
 
+        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
         httpConnectTimes.remove(clientAddress);
     }
 
@@ -219,6 +215,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
         else if (responseReceiveStartedNanos > 0L) {
             harEntry.getTimings().setReceive(timeoutTimestampNanos - responseReceiveStartedNanos, TimeUnit.NANOSECONDS);
         }
+        HarCaptureFilter.logFailedRequestIfRequired(harEntry.getRequest(), harEntry.getResponse());
     }
 
     @Override
@@ -337,7 +334,6 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
 
         populateServerIpAddress(harEntry);
 
-
         return harEntry;
     }
 
@@ -358,7 +354,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
                     log.trace("Unable to find cached IP address for host: {}. IP address in HAR entry will be blank.", serverHost);
                 }
             } else {
-                log.warn("Unable to identify host from request uri: {}", modifiedHttpRequest.getUri());
+                log.warn("Unable to identify host from request uri: {}", modifiedHttpRequest.uri());
             }
         }
     }
@@ -373,7 +369,7 @@ public class HttpConnectHarCaptureFilter extends HttpsAwareFiltersAdapter implem
     private HarRequest createRequestForFailedConnect(HttpRequest httpConnectRequest) {
         String url = getFullUrl(httpConnectRequest);
 
-        return new HarRequest(httpConnectRequest.getMethod().toString(), url, httpConnectRequest.getProtocolVersion().text());
+        return new HarRequest(httpConnectRequest.method().toString(), url, httpConnectRequest.protocolVersion().text());
     }
 
     /**

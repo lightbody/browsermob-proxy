@@ -2,12 +2,7 @@ package net.lightbody.bmp.filters;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.*;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import org.littleshoot.proxy.HttpFiltersAdapter;
 
@@ -60,7 +55,7 @@ public class ClientRequestCaptureFilter extends HttpFiltersAdapter {
 
             if (httpContent instanceof LastHttpContent) {
                 LastHttpContent lastHttpContent = (LastHttpContent) httpContent;
-                trailingHeaders = lastHttpContent .trailingHeaders();
+                trailingHeaders = lastHttpContent.trailingHeaders();
             }
         }
 

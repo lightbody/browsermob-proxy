@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>browsermob-proxy</artifactId>
         <groupId>net.lightbody.bmp</groupId>
-        <version>2.1.6-SNAPSHOT</version>
+        <version>2.1.38</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,9 +15,8 @@
     <dependencies>
         <dependency>
             <!-- Temporarily using the BMP release of littleproxy because LP 1.1.2 is incompatible with guava 22+ -->
-            <groupId>net.lightbody.bmp</groupId>
+            <groupId>org.littleshoot</groupId>
             <artifactId>littleproxy</artifactId>
-            <version>1.1.0-beta-bmp-17</version>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
@@ -88,7 +88,7 @@
 
         <dependency>
             <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
+            <artifactId>hamcrest</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -111,5 +111,4 @@
         </dependency>
 
     </dependencies>
-
 </project>

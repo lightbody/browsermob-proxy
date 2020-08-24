@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapMaker;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import net.lightbody.bmp.client.ClientUtil;
@@ -12,48 +12,19 @@ import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.core.har.HarNameVersion;
 import net.lightbody.bmp.core.har.HarPage;
-import net.lightbody.bmp.filters.AddHeadersFilter;
-import net.lightbody.bmp.filters.AutoBasicAuthFilter;
-import net.lightbody.bmp.filters.BlacklistFilter;
-import net.lightbody.bmp.filters.BrowserMobHttpFilterChain;
-import net.lightbody.bmp.filters.HarCaptureFilter;
-import net.lightbody.bmp.filters.HttpConnectHarCaptureFilter;
-import net.lightbody.bmp.filters.HttpsHostCaptureFilter;
-import net.lightbody.bmp.filters.HttpsOriginalHostCaptureFilter;
-import net.lightbody.bmp.filters.LatencyFilter;
-import net.lightbody.bmp.filters.RegisterRequestFilter;
-import net.lightbody.bmp.filters.RequestFilter;
-import net.lightbody.bmp.filters.RequestFilterAdapter;
-import net.lightbody.bmp.filters.ResolvedHostnameCacheFilter;
-import net.lightbody.bmp.filters.ResponseFilter;
-import net.lightbody.bmp.filters.ResponseFilterAdapter;
-import net.lightbody.bmp.filters.RewriteUrlFilter;
-import net.lightbody.bmp.filters.UnregisterRequestFilter;
-import net.lightbody.bmp.filters.WhitelistFilter;
+import net.lightbody.bmp.filters.*;
 import net.lightbody.bmp.mitm.KeyStoreFileCertificateSource;
 import net.lightbody.bmp.mitm.TrustSource;
 import net.lightbody.bmp.mitm.keys.ECKeyGenerator;
 import net.lightbody.bmp.mitm.keys.RSAKeyGenerator;
 import net.lightbody.bmp.mitm.manager.ImpersonatingMitmManager;
-import net.lightbody.bmp.proxy.ActivityMonitor;
-import net.lightbody.bmp.proxy.BlacklistEntry;
-import net.lightbody.bmp.proxy.CaptureType;
-import net.lightbody.bmp.proxy.RewriteRule;
-import net.lightbody.bmp.proxy.Whitelist;
+import net.lightbody.bmp.proxy.*;
 import net.lightbody.bmp.proxy.auth.AuthType;
 import net.lightbody.bmp.proxy.dns.AdvancedHostResolver;
 import net.lightbody.bmp.proxy.dns.DelegatingHostResolver;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import net.lightbody.bmp.util.BrowserMobProxyUtil;
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
-import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersSource;
-import org.littleshoot.proxy.HttpFiltersSourceAdapter;
-import org.littleshoot.proxy.HttpProxyServer;
-import org.littleshoot.proxy.HttpProxyServerBootstrap;
-import org.littleshoot.proxy.MitmManager;
+import org.littleshoot.proxy.*;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
@@ -62,16 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -182,6 +144,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
      * The amount of time to wait while connecting to a server.
      */
     private volatile int connectTimeoutMs;
+
+    /**
+     * Regexp to check request url and inject headers if url match regexp.
+     */
+    private static String headersFilterRegexp;
 
     /**
      * The amount of time a connection to a server can remain idle while receiving data from the server.
@@ -337,28 +304,25 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
             // chained proxy after the proxy is started.
             bootstrappedWithDefaultChainedProxy.set(true);
 
-            bootstrap.withChainProxyManager(new ChainedProxyManager() {
-                @Override
-                public void lookupChainedProxies(HttpRequest httpRequest, Queue<ChainedProxy> chainedProxies) {
-                    final InetSocketAddress upstreamProxy = upstreamProxyAddress;
-                    if (upstreamProxy != null) {
-                        chainedProxies.add(new ChainedProxyAdapter() {
-                            @Override
-                            public InetSocketAddress getChainedProxyAddress() {
-                                return upstreamProxy;
-                            }
+            bootstrap.withChainProxyManager((httpRequest, chainedProxies) -> {
+                final InetSocketAddress upstreamProxy = upstreamProxyAddress;
+                if (upstreamProxy != null) {
+                    chainedProxies.add(new ChainedProxyAdapter() {
+                        @Override
+                        public InetSocketAddress getChainedProxyAddress() {
+                            return upstreamProxy;
+                        }
 
-                            @Override
-                            public void filterRequest(HttpObject httpObject) {
-                                String chainedProxyAuth = chainedProxyCredentials;
-                                if (chainedProxyAuth != null) {
-                                    if (httpObject instanceof HttpRequest) {
-                                        HttpHeaders.addHeader((HttpRequest)httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
-                                    }
+                        @Override
+                        public void filterRequest(HttpObject httpObject) {
+                            String chainedProxyAuth = chainedProxyCredentials;
+                            if (chainedProxyAuth != null) {
+                                if (httpObject instanceof HttpRequest) {
+                                    ((HttpRequest) httpObject).headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             });
         }
@@ -631,6 +595,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         newHeaders.putAll(headers);
 
         this.additionalHeaders = newHeaders;
+    }
+
+    @Override
+    public void headerFilterRegexp(String headerFilterRegexp) {
+        this.headersFilterRegexp = headerFilterRegexp;
     }
 
     @Override
@@ -934,7 +903,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
      */
     @Override
     public void addResponseFilter(ResponseFilter filter) {
-        addLastHttpFilterFactory(new ResponseFilterAdapter.FilterSource(filter));
+        addLastHttpFilterFactory(new ResponseFilterAdapter.FilterSource(filter, Integer.parseInt(System.getProperty("maxResponseSizeBytes", String.valueOf(ResponseFilterAdapter.FilterSource.DEFAULT_MAXIMUM_RESPONSE_BUFFER_SIZE)))));
     }
 
     /**
@@ -1093,8 +1062,8 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
         addHttpFilterFactory(new HttpFiltersSourceAdapter() {
             @Override
-            public HttpFilters filterRequest(HttpRequest originalRequest) {
-                return new AddHeadersFilter(originalRequest, additionalHeaders);
+            public HttpFilters filterRequest(HttpRequest originalRequest,ChannelHandlerContext ctx) {
+                return new AddHeadersFilter(originalRequest,ctx, additionalHeaders, headersFilterRegexp);
             }
         });
 
@@ -1109,6 +1078,13 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
             @Override
             public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                 return new UnregisterRequestFilter(originalRequest, ctx, activityMonitor);
+            }
+        });
+
+        addHttpFilterFactory(new HttpFiltersSourceAdapter() {
+            @Override
+            public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
+                return new StatsDMetricsFilter(originalRequest, ctx);
             }
         });
     }

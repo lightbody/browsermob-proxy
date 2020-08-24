@@ -1,18 +1,21 @@
 package net.lightbody.bmp.proxy
 
+
 import net.lightbody.bmp.BrowserMobProxy
 import net.lightbody.bmp.BrowserMobProxyServer
 import net.lightbody.bmp.proxy.test.util.MockServerTest
 import net.lightbody.bmp.proxy.test.util.NewProxyServerTestUtil
+import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.conn.HttpHostConnectException
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockserver.matchers.Times
 
 import static org.junit.Assert.assertEquals
-import static org.junit.Assume.assumeNoException
 import static org.mockserver.model.HttpRequest.request
 import static org.mockserver.model.HttpResponse.response
 
@@ -58,16 +61,16 @@ class BindAddressTest extends MockServerTest {
 
         // find the local host address to bind to that isn't loopback. since ProxyServerTest.getNewHtpClient creates an HTTP client that
         // connects to a proxy at 127.0.0.1, the HTTP client should *not* be able to connect to the proxy
-        InetAddress localHostAddr
-        try {
-            localHostAddr = InetAddress.getLocalHost()
-        } catch (UnknownHostException e) {
-            assumeNoException("Could not get a localhost address. Skipping test.", e)
-            return
-        }
+        Socket socket = new Socket()
+        socket.connect(new InetSocketAddress("google.com", 80))
+        socket.getLocalAddress()
 
         proxy = new BrowserMobProxyServer()
-        proxy.start(0, localHostAddr)
+        proxy.start(0, new InetAddress().getByName(socket.getLocalAddress().getHostAddress()))
+
+
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        CloseableHttpResponse response = httpclient.execute(new HttpGet("http://127.0.0.1:${mockServerPort}/clientbind"));
 
         NewProxyServerTestUtil.getNewHttpClient(proxy.getPort()).withCloseable {
             it.execute(new HttpGet("http://127.0.0.1:${mockServerPort}/clientbind"))

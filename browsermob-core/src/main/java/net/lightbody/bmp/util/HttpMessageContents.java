@@ -1,7 +1,7 @@
 package net.lightbody.bmp.util;
 
 import io.netty.handler.codec.http.FullHttpMessage;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
 /**
  * Helper class to wrap the contents of an {@link io.netty.handler.codec.http.HttpMessage}. Contains convenience methods to extract and
  * manipulate the contents of the wrapped {@link io.netty.handler.codec.http.HttpMessage}.
- *
+ * <p>
  * TODO: Currently this class only wraps FullHttpMessages, since it must modify the Content-Length header; determine if this may be applied to chunked messages as well
  */
 public class HttpMessageContents {
@@ -96,7 +96,7 @@ public class HttpMessageContents {
      * @return the message's content type
      */
     public String getContentType() {
-        String contentTypeHeader = HttpHeaders.getHeader(httpMessage, HttpHeaders.Names.CONTENT_TYPE);
+        String contentTypeHeader = httpMessage.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (contentTypeHeader == null || contentTypeHeader.isEmpty()) {
             return BrowserMobHttpUtil.UNKNOWN_CONTENT_TYPE;
         } else {

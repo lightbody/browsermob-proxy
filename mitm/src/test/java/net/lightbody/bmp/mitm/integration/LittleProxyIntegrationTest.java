@@ -8,24 +8,19 @@ import net.lightbody.bmp.mitm.manager.ImpersonatingMitmManager;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersAdapter;
-import org.littleshoot.proxy.HttpFiltersSource;
-import org.littleshoot.proxy.HttpFiltersSourceAdapter;
-import org.littleshoot.proxy.HttpProxyServer;
+import org.littleshoot.proxy.*;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
@@ -48,7 +43,7 @@ public class LittleProxyIntegrationTest {
                     public HttpResponse proxyToServerRequest(HttpObject httpObject) {
                         if (httpObject instanceof HttpRequest) {
                             HttpRequest httpRequest = (HttpRequest) httpObject;
-                            if (httpRequest.getMethod().equals(HttpMethod.GET)) {
+                            if (httpRequest.method().equals(HttpMethod.GET)) {
                                 interceptedGetRequest.set(true);
                             }
                         }
@@ -60,7 +55,7 @@ public class LittleProxyIntegrationTest {
                     public HttpObject serverToProxyResponse(HttpObject httpObject) {
                         if (httpObject instanceof HttpResponse) {
                             HttpResponse httpResponse = (HttpResponse) httpObject;
-                            if (httpResponse.getStatus().code() == 200) {
+                            if (httpResponse.status().code() == 200) {
                                 interceptedGetResponse.set(true);
                             }
                         }
@@ -100,19 +95,13 @@ public class LittleProxyIntegrationTest {
     private static CloseableHttpClient getNewHttpClient(int proxyPort) {
         try {
             // Trust all certs -- under no circumstances should this ever be used outside of testing
-            SSLContext sslcontext = SSLContexts.custom()
-                    .useTLS()
-                    .loadTrustMaterial(null, new TrustStrategy() {
-                        @Override
-                        public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                            return true;
-                        }
-                    })
+            SSLContext sslcontext = SSLContexts.custom().setProtocol("TLS")
+                    .loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true)
                     .build();
 
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                     sslcontext,
-                    SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                    new DefaultHostnameVerifier());
 
             CloseableHttpClient httpclient = HttpClients.custom()
                     .setSSLSocketFactory(sslsf)

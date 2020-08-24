@@ -2,12 +2,7 @@ package net.lightbody.bmp.filters;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.*;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import org.littleshoot.proxy.HttpFiltersAdapter;
 import org.slf4j.Logger;
@@ -25,6 +20,7 @@ import java.io.IOException;
  */
 public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
     private static final Logger log = LoggerFactory.getLogger(ServerResponseCaptureFilter.class);
+    private static final String BROTLI_COMPRESSION = "br";
 
     /**
      * Populated by serverToProxyResponse() when processing the HttpResponse object
@@ -116,7 +112,7 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
 
             if (decompressEncodedContent) {
                 decompressContents();
-            }  else {
+            } else {
                 // will not decompress response
             }
         } else {
@@ -126,12 +122,19 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
     }
 
     protected void decompressContents() {
-        if (contentEncoding.equals(HttpHeaders.Values.GZIP)) {
+        if (contentEncoding.equals(HttpHeaderValues.GZIP.toString())) {
             try {
                 fullResponseContents = BrowserMobHttpUtil.decompressContents(getRawResponseContents());
                 decompressionSuccessful = true;
             } catch (RuntimeException e) {
-                log.warn("Failed to decompress response with encoding type " + contentEncoding + " when decoding request from " + originalRequest.getUri(), e);
+                log.warn("Failed to decompress response with encoding type " + contentEncoding + " when decoding request from " + originalRequest.uri(), e);
+            }
+        } else if (contentEncoding.equals(BROTLI_COMPRESSION)) {
+            try {
+                fullResponseContents = BrowserMobHttpUtil.decompressBrotliContents(getRawResponseContents());
+                decompressionSuccessful = true;
+            } catch (RuntimeException e) {
+                log.warn("Failed to decompress response with encoding type " + contentEncoding + " when decoding request from " + originalRequest.uri(), e);
             }
         } else {
             log.warn("Cannot decode unsupported content encoding type {}", contentEncoding);
@@ -139,7 +142,7 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
     }
 
     protected void captureContentEncoding(HttpResponse httpResponse) {
-        contentEncoding = HttpHeaders.getHeader(httpResponse, HttpHeaders.Names.CONTENT_ENCODING);
+        contentEncoding = httpResponse.headers().get(HttpHeaderNames.CONTENT_ENCODING);
     }
 
     protected void captureTrailingHeaders(LastHttpContent lastContent) {
@@ -147,7 +150,7 @@ public class ServerResponseCaptureFilter extends HttpFiltersAdapter {
 
         // technically, the Content-Encoding header can be in a trailing header, although this is excruciatingly uncommon
         if (trailingHeaders != null) {
-            String trailingContentEncoding = trailingHeaders.get(HttpHeaders.Names.CONTENT_ENCODING);
+            String trailingContentEncoding = trailingHeaders.get(HttpHeaderNames.CONTENT_ENCODING);
             if (trailingContentEncoding != null) {
                 contentEncoding = trailingContentEncoding;
             }

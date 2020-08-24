@@ -58,10 +58,6 @@ public class TrustEverythingSSLTrustManager implements X509TrustManager {
     public static void trustAllSSLCertificates(HttpsURLConnection connection) {
         getTrustingSSLSocketFactory();
         connection.setSSLSocketFactory(socketFactory);
-        connection.setHostnameVerifier(new HostnameVerifier() {
-            public boolean verify(String s, SSLSession sslSession) {
-                return true;
-            }
-        });
+        connection.setHostnameVerifier((s, sslSession) -> true);
     }
 }

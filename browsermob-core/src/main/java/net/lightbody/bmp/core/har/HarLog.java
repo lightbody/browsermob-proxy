@@ -10,8 +10,8 @@ public class HarLog {
     private final String version = "1.2";
     private volatile HarNameVersion creator;
     private volatile HarNameVersion browser;
-    private final List<HarPage> pages = new CopyOnWriteArrayList<HarPage>();
-    private final List<HarEntry> entries = new CopyOnWriteArrayList<HarEntry>();
+    private final List<HarPage> pages = new CopyOnWriteArrayList<>();
+    private final List<HarEntry> entries = new CopyOnWriteArrayList<>();
     private volatile String comment = "";
 
     public HarLog() {

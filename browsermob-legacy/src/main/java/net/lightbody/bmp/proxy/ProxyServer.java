@@ -205,7 +205,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
                 server.stop();
             }
 		} catch (InterruptedException e) {
-			// the try/catch block in server.stop() is manufacturing a phantom InterruptedException, so this should not occur 
+			// the try/catch block in server.stop() is manufacturing a phantom InterruptedException, so this should not occur
 			throw new JettyException("Exception occurred when stopping the server", e);
 		}
     }
@@ -236,10 +236,10 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
     /**
      * Get the the InetAddress that the Proxy server binds to when it starts.
-     * 
+     *
      * If not otherwise set via {@link #setLocalHost(InetAddress)}, defaults to
      * 0.0.0.0 (i.e. bind to any interface).
-     * 
+     *
      * Note - just because we bound to the address, doesn't mean that it can be
      * reached. E.g. trying to connect to 0.0.0.0 is going to fail. Use
      * {@link #getConnectableLocalHost()} if you're looking for a host that can be
@@ -258,22 +258,22 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
         }
         return localHost;
     }
-    
+
     /**
      * Return a plausible {@link InetAddress} that other processes can use to
      * contact the proxy.
-     * 
+     *
      * In essence, this is the same as {@link #getLocalHost()}, but avoids
      * returning 0.0.0.0. as no-one can connect to that. If no other host has
      * been set via {@link #setLocalHost(InetAddress)}, will return
      * {@link InetAddress#getLocalHost()}
-     * 
+     *
      * No attempt is made to check the address for reachability before it is
      * returned.
      */
     @Override
     public InetAddress getConnectableLocalHost() throws UnknownHostException {
-        
+
     	if (getLocalHost().equals(InetAddress.getByName("0.0.0.0"))) {
             return InetAddress.getLocalHost();
         } else {
@@ -295,12 +295,12 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 				throw new IllegalArgumentException("localHost address must be address of a local adapter (attempted to use: " + localHost + ")", e);
 			}
         	if (localInterface != null) {
-        		this.localHost = localHost;	
+        		this.localHost = localHost;
         	} else {
                 throw new IllegalArgumentException("localHost address must be address of a local adapter (attempted to use: " + localHost + ")");
             }
         }
-        
+
     }
 
     @Override
@@ -544,6 +544,11 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
         }
     }
 
+    @Override
+    public void headerFilterRegexp(String headerFilterRegexp){
+       client.setHeadersFilterRegexp(headerFilterRegexp);
+    }
+
     public void remapHost(String source, String target) {
         if (client.getResolver() instanceof AdvancedHostResolver) {
             AdvancedHostResolver advancedHostResolver = (AdvancedHostResolver) client.getResolver();
@@ -660,7 +665,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     public void blacklistRequests(String pattern, int responseCode) {
     	client.blacklistRequests(pattern, responseCode, null);
     }
-    
+
     @Override
     public void blacklistRequests(String pattern, int responseCode, String method) {
         client.blacklistRequests(pattern, responseCode, method);
@@ -690,7 +695,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     public List<BlacklistEntry> getBlacklistedRequests() {
         return client.getBlacklistedRequests();
     }
-    
+
     @Override
     public Collection<BlacklistEntry> getBlacklistedUrls() {
     	return client.getBlacklistedUrls();
@@ -709,7 +714,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 	public List<Pattern> getWhitelistRequests() {
 		return client.getWhitelistRequests();
 	}
-	
+
     @Override
     public Collection<String> getWhitelistUrls() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
@@ -748,10 +753,10 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
 
     /**
-     * Whitelists the specified requests. 
+     * Whitelists the specified requests.
      * <p>
      * <b>Note:</b> This method overwrites any existing whitelist.
-     * 
+     *
      * @param patterns regular expression patterns matching URLs to whitelist
      * @param responseCode response code to return for non-whitelisted URLs
      */
@@ -759,10 +764,10 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     public void whitelistRequests(String[] patterns, int responseCode) {
         client.whitelistRequests(patterns, responseCode);
     }
-    
+
     /**
      * Enables an empty whitelist, which will return the specified responseCode for all requests.
-     * 
+     *
      * @param responseCode HTTP response code to return for all requests
      */
     @Override
@@ -799,7 +804,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
     @Override
     public void removeAllHeaders() {
-        client.setAdditionalHeaders(Collections.<String, String>emptyMap());
+        client.setAdditionalHeaders(Collections.emptyMap());
     }
 
     @Override
@@ -847,7 +852,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     public void setCaptureContent(boolean captureContent) {
         client.setCaptureContent(captureContent);
     }
-    
+
     @Override
     public void setCaptureBinaryContent(boolean captureBinaryContent) {
         client.setCaptureBinaryContent(captureBinaryContent);

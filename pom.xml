@@ -1,8 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lightbody.bmp</groupId>
     <artifactId>browsermob-proxy</artifactId>
-    <version>2.1.6-SNAPSHOT</version>
+    <version>2.1.38</version>
     <modules>
         <module>browsermob-core</module>
         <module>browsermob-legacy</module>
@@ -46,38 +47,44 @@
         <tag>HEAD</tag>
     </scm>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>bintray</id>
+            <name>Groovy Bintray</name>
+            <url>https://dl.bintray.com/groovy/maven</url>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <slf4j.version>1.7.25</slf4j.version>
-        <selenium.version>2.53.1</selenium.version>
+        <slf4j.version>1.7.28</slf4j.version>
+        <selenium.version>3.141.59</selenium.version>
 
-        <jackson.version>2.8.9</jackson.version>
+        <jackson.version>2.10.0</jackson.version>
+        <logstash-gelf.version>1.13.0</logstash-gelf.version>
 
-        <maven-jar-plugin.version>3.0.2</maven-jar-plugin.version>
+        <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
 
-        <log4j.version>2.9.0</log4j.version>
+        <log4j.version>2.13.3</log4j.version>
 
-        <groovy.version>2.4.12</groovy.version>
-        <groovy-eclipse-batch.version>2.4.3-01</groovy-eclipse-batch.version>
+        <groovy.version>3.0.5</groovy.version>
+        <groovy-eclipse-batch.version>2.5.8-02</groovy-eclipse-batch.version>
 
-        <netty.version>4.0.51.Final</netty.version>
+        <netty.version>4.1.51.Final</netty.version>
         <!-- netty 4.1 version to use for browsermob-dist and when using the netty-4.1 profile -->
-        <netty-4.1.version>4.1.15.Final</netty-4.1.version>
 
-        <bouncycastle.version>1.58</bouncycastle.version>
+        <bouncycastle.version>1.66</bouncycastle.version>
+        <java-statsd-client.version>3.0.1</java-statsd-client.version>
+        <java.version>11</java.version>
+        <additionalJOption>-Xdoclint:none</additionalJOption>
     </properties>
 
     <build>
@@ -87,7 +94,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -97,22 +104,22 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.6.1</version>
+                    <version>3.8.1</version>
                     <configuration>
-                        <compilerId>groovy-eclipse-compiler</compilerId>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>UTF-8</encoding>
                     </configuration>
                     <dependencies>
                         <dependency>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-eclipse-compiler</artifactId>
-                            <version>2.9.2-01</version>
+                            <version>3.3.0-01</version>
                         </dependency>
                         <dependency>
                             <groupId>org.codehaus.groovy</groupId>
                             <artifactId>groovy-eclipse-batch</artifactId>
-                            <version>${groovy-eclipse-batch.version}</version>
+                            <version>2.5.6-01</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -140,13 +147,13 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.19.1</version>
                     <configuration>
-                        <argLine>-Xmx1g -XX:MaxPermSize=256m</argLine>
+                        <argLine>-Xmx1g</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.10.4</version>
+                    <version>3.1.1</version>
                     <executions>
                         <execution>
                             <id>attach-javadocs</id>
@@ -155,7 +162,7 @@
                                 <goal>jar</goal>
                             </goals>
                             <configuration>
-                                <additionalparam>${javadoc.opts}</additionalparam>
+                                <additionalJOption>${additionalJOption}</additionalJOption>
                             </configuration>
                         </execution>
                     </executions>
@@ -163,12 +170,30 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.2</version>
+                    <version>3.0.0-M1</version>
+                    <executions>
+                        <execution>
+                            <id>install-external</id>
+                            <inherited>false</inherited>
+                            <phase>install</phase>
+                            <configuration>
+                                <file>${basedir}/resources/jar/littleproxy-1.1.6.jar</file>
+                                <repositoryLayout>default</repositoryLayout>
+                                <groupId>org.littleshoot</groupId>
+                                <artifactId>littleproxy</artifactId>
+                                <version>1.1.6</version>
+                                <packaging>jar</packaging>
+                            </configuration>
+                            <goals>
+                                <goal>install-file</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
+                    <version>3.0.0-M1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -178,7 +203,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.1.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -209,10 +234,21 @@
             </dependency>
 
             <dependency>
+                <groupId>biz.paluch.logging</groupId>
+                <artifactId>logstash-gelf</artifactId>
+                <version>${logstash-gelf.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>co.elastic.logging</groupId>
+                <artifactId>log4j2-ecs-layout</artifactId>
+                <version>0.5.0</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <!-- Remove the -android when dropping support for Java 7. -->
-                <version>23.0-android</version>
+                <version>28.1-jre</version>
             </dependency>
 
             <dependency>
@@ -239,14 +275,19 @@
 
             <dependency>
                 <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-library</artifactId>
-                <version>1.3</version>
+                <artifactId>hamcrest</artifactId>
+                <version>2.1</version>
             </dependency>
 
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>2.8.47</version>
+                <version>3.5.2</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>1.10.14</version>
             </dependency>
 
             <dependency>
@@ -268,18 +309,20 @@
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy-all</artifactId>
                 <version>${groovy.version}</version>
+                <type>pom</type>
             </dependency>
 
             <dependency>
-                <groupId>net.lightbody.bmp</groupId>
+                <groupId>org.littleshoot</groupId>
                 <artifactId>littleproxy</artifactId>
-                <version>1.1.0-beta-bmp-17</version>
+                <version>1.1.6</version>
             </dependency>
+
 
             <dependency>
                 <groupId>org.mock-server</groupId>
                 <artifactId>mockserver-netty</artifactId>
-                <version>3.10.4</version>
+                <version>5.11.1</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ch.qos.logback</groupId>
@@ -315,13 +358,13 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.3</version>
+                <version>4.5.12</version>
             </dependency>
 
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
-                <version>4.5.3</version>
+                <version>4.5.12</version>
             </dependency>
 
             <dependency>
@@ -412,9 +455,15 @@
             </dependency>
 
             <dependency>
+                <groupId>com.timgroup</groupId>
+                <artifactId>java-statsd-client</artifactId>
+                <version>${java-statsd-client.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
-                <version>3.21.0-GA</version>
+                <version>3.26.0-GA</version>
             </dependency>
 
         </dependencies>
@@ -424,7 +473,8 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
-            <scope>test</scope>
+            <version>2.5.8</version>
+            <type>pom</type>
         </dependency>
     </dependencies>
 
@@ -446,7 +496,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.19.1</version>
+                        <version>3.0.0-M3</version>
                         <configuration>
                             <skipTests>true</skipTests>
                         </configuration>
@@ -454,7 +504,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -468,7 +518,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
+                        <version>3.1.1</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -499,7 +549,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -523,21 +573,5 @@
         </profile>
         <!-- Work-around for incomplete javadoc on Java 8, courtesy of http://stackoverflow.com/questions/15886209/maven-is-not-working-in-java-8-when-javadoc-tags-are-incomplete.
              Once legacy code is removed and javadoc is cleaned up, this can be removed. -->
-        <profile>
-            <id>doclint-java8-disable</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <properties>
-                <javadoc.opts>-Xdoclint:none</javadoc.opts>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>netty-4.1</id>
-            <properties>
-                <netty.version>${netty-4.1.version}</netty.version>
-            </properties>
-        </profile>
     </profiles>
 </project>

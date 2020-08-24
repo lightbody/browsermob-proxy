@@ -3,10 +3,7 @@ package net.lightbody.bmp.mitm.util;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.io.CharStreams;
-import io.netty.handler.ssl.OpenSsl;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SupportedCipherSuiteFilter;
+import io.netty.handler.ssl.*;
 import net.lightbody.bmp.mitm.trustmanager.InsecureTrustManagerFactory;
 import net.lightbody.bmp.mitm.TrustSource;
 import net.lightbody.bmp.mitm.exception.SslContextInitializationException;
@@ -74,12 +71,12 @@ public class SslUtil {
      * supply an appropriate trustSource except in extraordinary circumstances (e.g. testing with dynamically-generated
      * certificates).
      *
-     * @param cipherSuites    cipher suites to allow when connecting to the upstream server
-     * @param trustSource     the trust store that will be used to validate upstream servers' certificates, or null to accept all upstream server certificates
+     * @param cipherSuites cipher suites to allow when connecting to the upstream server
+     * @param trustSource  the trust store that will be used to validate upstream servers' certificates, or null to accept all upstream server certificates
      * @return an SSLContext to connect to upstream servers with
      */
     public static SslContext getUpstreamServerSslContext(Collection<String> cipherSuites, TrustSource trustSource) {
-        SslContextBuilder sslContextBuilder = SslContextBuilder.forClient();
+        SslContextBuilder sslContextBuilder = SslContextBuilder.forClient().sslProvider(SslProvider.JDK);
 
         if (trustSource == null) {
             log.warn("Disabling upstream server certificate verification. This will allow attackers to intercept communications with upstream servers.");
