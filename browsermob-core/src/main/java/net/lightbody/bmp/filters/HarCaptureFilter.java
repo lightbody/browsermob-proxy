@@ -32,10 +32,11 @@ import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.proxy.CaptureType;
 import net.lightbody.bmp.util.BeansJsonMapper;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
+import org.apache.logging.log4j.message.StringMapMessage;
 import org.littleshoot.proxy.impl.ProxyUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -57,7 +58,7 @@ import static net.lightbody.bmp.filters.StatsDMetricsFilter.getStatsDPort;
 import static net.lightbody.bmp.filters.StatsDMetricsFilter.prepareMetric;
 
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
-    private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
+    private static final Logger log = LogManager.getLogger();
     private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
 
     /**
@@ -796,14 +797,16 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
         if ((Objects.isNull(isAlreadyLoggedIn.get()) ||
                 isAlreadyLoggedIn.get().hashCode() != request.hashCode())
                 && (response.getStatus() >= 500 || response.getStatus() == 0)) {
-            MDC.put("caller", "mobproxy");
-            MDC.put("http_response_code", String.valueOf(response.getStatus()));
-            MDC.put("http_host", request.getUrl());
-            MDC.put("request_details", BeansJsonMapper.getJsonString(request));
-            MDC.put("method", request.getMethod());
-            MDC.put("response", BeansJsonMapper.getJsonString(response));
-            log.error("received bad status code");
+            log.error(new StringMapMessage()
+                    .with("message", "received bad status code")
+                    .with("caller", "mobproxy")
+                    .with("http_response_code", String.valueOf(response.getStatus()))
+                    .with("http_host", request.getUrl())
+                    .with("request_details", BeansJsonMapper.getJsonString(request))
+                    .with("method", request.getMethod())
+                    .with("response", BeansJsonMapper.getJsonString(response)));
             isAlreadyLoggedIn.set(request);
+            ThreadContext.clearMap();
         }
     }
 

@@ -239,6 +239,11 @@
                 <version>${logstash-gelf.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>co.elastic.logging</groupId>
+                <artifactId>log4j2-ecs-layout</artifactId>
+                <version>0.5.0</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.google.guava</groupId>
