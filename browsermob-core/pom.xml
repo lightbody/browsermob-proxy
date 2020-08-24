@@ -6,7 +6,7 @@
     <parent>
         <artifactId>browsermob-proxy</artifactId>
         <groupId>net.lightbody.bmp</groupId>
-        <version>2.1.37</version>
+        <version>2.1.38</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -70,8 +70,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.fluentd</groupId>
-            <artifactId>fluent-logger</artifactId>
+            <groupId>co.elastic.logging</groupId>
+            <artifactId>log4j2-ecs-layout</artifactId>
         </dependency>
 
 
@@ -168,12 +168,10 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

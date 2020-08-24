@@ -6,28 +6,48 @@ import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpObject;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
-import net.lightbody.bmp.core.har.*;
+import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarCookie;
+import net.lightbody.bmp.core.har.HarEntry;
+import net.lightbody.bmp.core.har.HarNameValuePair;
+import net.lightbody.bmp.core.har.HarPostData;
+import net.lightbody.bmp.core.har.HarPostDataParam;
+import net.lightbody.bmp.core.har.HarRequest;
+import net.lightbody.bmp.core.har.HarResponse;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
 import net.lightbody.bmp.filters.support.HttpConnectTiming;
 import net.lightbody.bmp.filters.util.HarCaptureUtil;
 import net.lightbody.bmp.proxy.CaptureType;
 import net.lightbody.bmp.util.BeansJsonMapper;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.fluentd.logger.FluentLogger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.StringMapMessage;
 import org.littleshoot.proxy.impl.ProxyUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,15 +57,9 @@ import static net.lightbody.bmp.filters.StatsDMetricsFilter.getStatsDPort;
 import static net.lightbody.bmp.filters.StatsDMetricsFilter.prepareMetric;
 
 public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
-    private static final Logger log = LoggerFactory.getLogger(HarCaptureFilter.class);
-    private static FluentLogger LOG;
-    private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
+    private static final Logger log = LogManager.getLogger(HarCaptureFilter.class);
 
-    static {
-        if (StringUtils.isNotEmpty(System.getProperty("fluentdHost")) || StringUtils.isNotEmpty(System.getProperty("fluentdPort"))) {
-            LOG = FluentLogger.getLogger("mobproxy", System.getProperty("fluentdHost"), Integer.parseInt(System.getProperty("fluentdPort")));
-        }
-    }
+    private static final InheritableThreadLocal<HarRequest> isAlreadyLoggedIn = new InheritableThreadLocal<>();
 
     /**
      * The currently active HAR at the time the current request is received.
@@ -780,17 +794,17 @@ public class HarCaptureFilter extends HttpsAwareFiltersAdapter {
     }
 
     protected static void logFailedRequestIfRequired(HarRequest request, HarResponse response) {
-        if (Objects.nonNull(LOG) &&
-                (Objects.isNull(isAlreadyLoggedIn.get()) || isAlreadyLoggedIn.get().hashCode() != request.hashCode())
+        if ((Objects.isNull(isAlreadyLoggedIn.get()) ||
+                isAlreadyLoggedIn.get().hashCode() != request.hashCode())
                 && (response.getStatus() >= 500 || response.getStatus() == 0)) {
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("caller", "mobproxy");
-            data.put("http_response_code", String.valueOf(response.getStatus()));
-            data.put("http_host", request.getUrl());
-            data.put("request_details", BeansJsonMapper.getJsonString(request));
-            data.put("method", request.getMethod());
-            data.put("response", BeansJsonMapper.getJsonString(response));
-            LOG.log("failure", data);
+            log.error(new StringMapMessage()
+                    .with("message", "received bad status code")
+                    .with("caller", "mobproxy")
+                    .with("http_response_code", String.valueOf(response.getStatus()))
+                    .with("http_host", request.getUrl())
+                    .with("request_details", BeansJsonMapper.getJsonString(request))
+                    .with("method", request.getMethod())
+                    .with("response", BeansJsonMapper.getJsonString(response)));
             isAlreadyLoggedIn.set(request);
         }
     }
