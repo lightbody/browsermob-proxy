@@ -258,6 +258,11 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
      * Base64-encoded credentials to use to authenticate with the upstream proxy.
      */
     private volatile String chainedProxyCredentials;
+    
+    /**
+     * Determines whether to start LittleProxy in transparent mode.
+     */
+    private volatile boolean transparent = false;
 
     public BrowserMobProxyServer() {
     }
@@ -299,6 +304,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
                         return getMaximumResponseBufferSize();
                     }
                 })
+                .withTransparent(transparent)
                 .withServerResolver(delegatingResolver)
                 .withAddress(clientBindSocket)
                 .withConnectTimeout(connectTimeoutMs)
@@ -1028,6 +1034,10 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
     public void setUseEcc(boolean useEcc) {
         this.useEcc = useEcc;
+    }
+    
+    public void setTransparent(boolean transparent) {
+        this.transparent = transparent;
     }
 
     /**
