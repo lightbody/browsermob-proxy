@@ -9,11 +9,16 @@ then
     JAVACMD="java"
 fi
 
+trap 'kill -TERM $PID' TERM INT
 "$JAVACMD" $JAVA_OPTS \
            -Dapp.name="browsermob-proxy" \
            -Dbasedir="$BASEDIR" \
            -jar "$BASEDIR/lib/browsermob-dist-${project.version}.jar" \
-           "$@"
+           "$@" &
+PID=$!
+wait $PID
+trap - TERM INT
+wait $PID
 
 # if we couldn't find java, print a helpful error message
 if [ $? -eq 127 ]
