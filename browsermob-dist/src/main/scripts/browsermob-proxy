@@ -9,6 +9,8 @@ then
     JAVACMD="java"
 fi
 
+# start process in the background and handle SIGTERM/SIGINT
+# see https://veithen.io/2014/11/16/sigterm-propagation.html
 trap 'kill -TERM $PID' TERM INT
 "$JAVACMD" $JAVA_OPTS \
            -Dapp.name="browsermob-proxy" \
