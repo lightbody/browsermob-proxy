@@ -42,6 +42,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -598,6 +599,20 @@ public class ProxyResource {
         String quietPeriodInMs = request.param("quietPeriodInMs");
         String timeoutInMs = request.param("timeoutInMs");
         proxy.waitForNetworkTrafficToStop(Integer.parseInt(quietPeriodInMs), Integer.parseInt(timeoutInMs));
+        return Reply.saying().ok();
+    }
+
+    @Put
+    @At("/:port/upstreamProxy/:upstreamHost/:upstreamPort")
+    public Reply<?> upstreamProxy(@Named("port") int port,
+                                  @Named("upstreamHost") String upstreamHost,
+                                  @Named("upstreamPort") int upstreamPort,
+                                  Request<String> request) {
+        BrowserMobProxy proxy = (BrowserMobProxy) proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+        proxy.setChainedProxy(new InetSocketAddress(upstreamHost, upstreamPort));
         return Reply.saying().ok();
     }
 
