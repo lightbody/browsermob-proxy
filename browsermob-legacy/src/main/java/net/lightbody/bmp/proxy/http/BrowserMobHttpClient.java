@@ -528,6 +528,7 @@ public class BrowserMobHttpClient {
 
     private URI makeUri(String url) throws URISyntaxException {
         // MOB-120: check for | character and change to correctly escaped %7C
+        /*
         url = url.replace(" ", "%20");
         url = url.replace(">", "%3C");
         url = url.replace("<", "%3E");
@@ -542,8 +543,9 @@ public class BrowserMobHttpClient {
         url = url.replace("]", "%5D");
         url = url.replace("`", "%60");
         url = url.replace("\"", "%22");
-
+        */
         URI uri = new URI(url);
+        // System.out.println(url);
 
         // are we using the default ports for http/https? if so, let's rewrite the URI to make sure the :80 or :443
         // is NOT included in the string form the URI. The reason we do this is that in HttpClient 4.0 the Host header
